@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using TMPro;
+using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.UI;
@@ -23,6 +24,7 @@ public class PlayerController : MonoBehaviour
     [SerializeField] private float jumpHeight = 8f;
 
     [SerializeField] private float health = 100;
+    [SerializeField] private float hunger = 100;
     private bool isInLight;
 
     // Input variables
@@ -41,18 +43,30 @@ public class PlayerController : MonoBehaviour
     private PlayerInput playerInput;
     private Rigidbody rb;
     private Collider collision;
-    private Collider meleeHitbox;
     private DayNightCycle daylight;
     private Image healthImage;
+    private Image hungerImage;
 
     // Inventory
-    private List<string> inventory;
+    private Item[] inventory;
     private int selectedItem = 0;
     private int inventorySize;
 
     // UI
     private TMP_Text[] inventoryItemTexts;
 
+    // Weapon related
+    [SerializeField] private GameObject meleeWeapon;
+    private int CurrentDamage;
+
+    // Fire spawning
+    [SerializeField] private GameObject fireplace;
+    [SerializeField] private GameObject fireSpawnCheck;
+    private GameObject currentFire;
+    private bool createFireButton;
+    private bool canPlaceFire = true;
+
+    #region Start + Update(s)
     // Getting references to necessary objects + initializing the inventory system
     void Start()
     {
@@ -61,14 +75,13 @@ public class PlayerController : MonoBehaviour
         collision = GetComponent<Collider>();
         daylight = GameObject.Find("Directional Light").GetComponent<DayNightCycle>();
         healthImage = GameObject.Find("Health Image").GetComponent<Image>();
+        hungerImage = GameObject.Find("Food Image").GetComponent<Image>();
 
-        // horrible way to grab the first object w/ a trigger hitbox attached as a child
-        // im probably over estimating how long this code takes to run, but its only runs once so...
-        meleeHitbox = GetComponentsInChildren<Collider>().Where(collider => collider.isTrigger).First();
-        meleeHitbox.enabled = false;
+        // The getcomponentsinchildren call here is gone, instead it must be set in the editor
+        meleeWeapon.SetActive(false);
 
         inventorySize = 5;
-        inventory = new List<string>();
+        inventory = new Item[inventorySize];
         GameObject[] itemSlots = GameObject.FindGameObjectsWithTag("Inventory Slot");
         //Debug.Log(itemSlots.Length);
         inventoryItemTexts = new TMP_Text[itemSlots.Length];
@@ -89,6 +102,7 @@ public class PlayerController : MonoBehaviour
         usingItem = playerInput.actions["UseItem"].WasPressedThisFrame() || usingItem;
         nextItemInput = playerInput.actions["Next"].WasPressedThisFrame() || nextItemInput;
         previousItemInput = playerInput.actions["Previous"].WasPressedThisFrame() || previousItemInput;
+        createFireButton = playerInput.actions["Fire"].WasPressedThisFrame() || createFireButton;
     }
 
     // Processing what the player is doing this frame happens here for smoother and more consistent gameplay
@@ -131,6 +145,15 @@ public class PlayerController : MonoBehaviour
             Hurt(0.25f - daylight.LightValue);
         }
 
+        // The hunger also consumes you
+        hunger -= 0.01f;
+        if (hunger <= 0)
+        {
+            hunger = 0;
+            Hurt(0.05f);
+        }
+        hungerImage.rectTransform.localScale = new Vector3(hunger / 100, hunger / 100, 1);
+
         // inventory management
         if (nextItemInput)
         {
@@ -153,25 +176,55 @@ public class PlayerController : MonoBehaviour
         previousItemInput = false;
         // todo: drop
 
+        // Use item - all the code is done in UseItem
+        if (usingItem)
+        {
+            UseItem();
+        }
+
         // update the UI
         for (int i = 0; i < inventoryItemTexts.Length; i++)
         {
-            if (inventory.Count > i)
+            if (inventory[i] != null)
             {
-                inventoryItemTexts[i].text = inventory[i] ?? "None";
+                inventoryItemTexts[i].text = inventory[i].GetAttributes().Name + (inventory[i].GetCount() > 1 ? " x" + inventory[i].GetCount() : "");
+            }
+            else
+            {
+                inventoryItemTexts[i].text = "None";
             }
             inventoryItemTexts[i].fontSize = 18;
         }
         inventoryItemTexts[selectedItem].fontSize = 27;
-    }
 
+        // Create a fire
+        if (createFireButton && canPlaceFire)
+        {
+            CreateFire();
+        }
+
+        createFireButton = false;
+    }
+    #endregion
+
+    #region Weapon/Hurt Behavior
     // The melee attack coroutine
+    // TODO: replace this with a call for melee attack animation on the given weapon equipped
     private IEnumerator MeleeAttack()
     {
         canAttack = false;
-        meleeHitbox.enabled = true;
+        meleeWeapon.SetActive(true);
+        if ((inventory[selectedItem]?.GetAttributes().Type & (int) ItemType.Weapon) == (int) ItemType.Weapon)
+        {
+            CurrentDamage = inventory[selectedItem].GetAttributes().WeaponDamage;
+        }
+        else
+        {
+            CurrentDamage = 1;
+        }
+
         yield return new WaitForSeconds(0.25f);
-        meleeHitbox.enabled = false;
+        meleeWeapon.SetActive(false);
         yield return new WaitForSeconds(0.25f);
         canAttack = true;
     }
@@ -183,32 +236,115 @@ public class PlayerController : MonoBehaviour
         Debug.Log(health);
         healthImage.rectTransform.localScale = new Vector3(health / 100, health / 100, 1);
     }
+    #endregion
 
-    // Adds an item to the inventory
+    #region Items Behavior
+    // Adds an item to the inventory in the first available slot
     private void PickUpItem(GameObject item)
     {
-        if (inventory.Count == inventorySize) 
-        {
-            return;
-        }
+        ItemAttributes theThingWeWant = item.GetComponent<Pickupable>().Item;
 
-        string theThingWeWant = item.GetComponent<Pickupable>().ItemName;
-        inventory.Add(theThingWeWant);
-        Debug.Log(theThingWeWant);
-        Destroy(item);
+        for (int i = 0; i < inventorySize; i++)
+        {
+            if (inventory[i] == null )
+            {
+                inventory[i] = new Item(theThingWeWant);
+                Destroy(item);
+                break;
+            }
+            else if (inventory[i].GetAttributes().Name.Equals(theThingWeWant.Name)
+                && inventory[i].GetCount() < inventory[i].GetAttributes().MaxStackSize)
+            {
+                inventory[i].IncreaseCount();
+                Destroy(item);
+                break;
+            }
+        }
     }
 
     // Uses the currently selected item
     private void UseItem()
     {
-        if (inventory.Count <= selectedItem)
+        if (inventory[selectedItem] == null)
         {
             return;
         }
 
-        // todo: really big switch block probably; gonna make this a bit more logical in the future
+        Item item = inventory[selectedItem];
+        // todo: make the item usage check what type of item you are using and pull the values to use from the stats
+        ItemAttributes stats = inventory[selectedItem].GetAttributes();
+
+        // WEAPONS
+        if ((stats.Type & (int) ItemType.Weapon) == (int) ItemType.Weapon)
+        {
+            // something? attacks are handled separately
+        }
+        // FOODS
+        if ((stats.Type & (int) ItemType.Food) == (int) ItemType.Food)
+        {
+            hunger += stats.FoodHungerRestore;
+            if (hunger > 100)
+            {
+                hunger = 100;
+            }
+            DecrementItemCount();
+        }
+        // TREE CHOPS
+        if ((stats.Type & (int) ItemType.TreeChop) == (int) ItemType.TreeChop)
+        {
+            // hit tree, remove durability
+            item.SetDurability(item.GetDurability() - 1);
+            if (item.GetDurability() <= 0)
+            {
+                DecrementItemCount();
+            }
+        }
     }
 
+    // Decrements the item count of a stack, or deletes the stack if empty
+    private void DecrementItemCount()
+    {
+        inventory[selectedItem].DecreaseCount();
+        if (inventory[selectedItem].GetCount() <= 0)
+        {
+            inventory[selectedItem] = null;
+        }
+    }
+    #endregion
+
+    #region Fire Mechanics
+    // Creates a fire, if possible
+    private void CreateFire()
+    {
+        // Check fire building conditions
+        if (inventory[selectedItem] == null || (inventory[selectedItem].GetAttributes().Type & (int) ItemType.Burnable) != (int) ItemType.Burnable)
+        {
+            return;
+        }
+        bool positionLegal = Physics.Raycast(fireSpawnCheck.transform.position, Vector3.down, out RaycastHit hit, 5);
+        if (!positionLegal)
+        {
+            return;
+        }
+
+        // now we build the fire
+        StartCoroutine(PlaceFireCooldown());
+
+        currentFire = Instantiate(fireplace, hit.point, Quaternion.identity);
+        currentFire.GetComponent<FireLifespan>().AddFuel(inventory[selectedItem].GetAttributes().BurnableFuelValue);
+        DecrementItemCount();
+    }
+
+    // The fire building coroutine - currently pretty barebones
+    private IEnumerator PlaceFireCooldown()
+    {
+        canPlaceFire = false;
+        yield return new WaitForSeconds(5f);
+        canPlaceFire = true;
+    }
+    #endregion
+
+    #region On Collision/Trigger
     // Pretty simple ground check, probably not a good ground check so I'll fix that later
     private void OnCollisionEnter(Collision collision)
     {
@@ -222,7 +358,6 @@ public class PlayerController : MonoBehaviour
         {
             isInLight = true;
         }
-
         if (other.GetComponent<Pickupable>() != null)
         {
             PickUpItem(other.gameObject);
@@ -236,4 +371,5 @@ public class PlayerController : MonoBehaviour
             isInLight = false;
         }
     }
+    #endregion
 }

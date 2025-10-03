@@ -114,7 +114,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 1c84003b075c9a74cb35a699df813f52, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  item: Meat
+  item: {fileID: 11400000, guid: 13297c316d0c3d74f80bef0d8a15f38c, type: 2}
 --- !u!65 &1900351232702188302
 BoxCollider:
   m_ObjectHideFlags: 0

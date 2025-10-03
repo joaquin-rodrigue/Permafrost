@@ -1,5 +1,8 @@
 using UnityEngine;
 
+/// <summary>
+/// Generates objects in the world randomly.
+/// </summary>
 public class RandomSpawner : MonoBehaviour
 {
     [SerializeField] private GameObject animal;
@@ -12,31 +15,60 @@ public class RandomSpawner : MonoBehaviour
     [SerializeField] private float animalSpawnTimeMin;
 
     private int treeCount;
+    private int maxLoopCountDuringGeneration = 1000;
     [SerializeField] private int treeCountMax;
     [SerializeField] private int treeCountMin;
 
-    // Start is called once before the first execution of Update after the MonoBehaviour is created
-    void Start()
+    [SerializeField] private RandomTerrainGenerator generation;
+
+    // Runs the code to spawn one-time objects
+    public void Generate()
     {
-        treeCount = Random.Range(treeCountMin, treeCountMax);
+        treeCount = generation.random.Next(treeCountMin, treeCountMax);
         bool foundValidSpawn = false;
         RaycastHit hit = new();
 
-        for (int i = 0; i < treeCount;)
+        int loopCount = 0; // prevent rng from causing an infinite loop
+        for (int i = 0; i < treeCount && loopCount < maxLoopCountDuringGeneration;)
         {
             foundValidSpawn = false;
-            while (!foundValidSpawn)
+            while (!foundValidSpawn && loopCount < maxLoopCountDuringGeneration)
             {
-                foundValidSpawn = Physics.Raycast(new Vector3(Random.Range(100, 900), 80, Random.Range(100, 900)), Vector3.down, out hit, 80);
+                foundValidSpawn = Physics.Raycast(new Vector3(
+                    generation.random.Next((int) generation.MapBounds.min.x, (int) generation.MapBounds.max.x), 
+                    120, 
+                    generation.random.Next((int)generation.MapBounds.min.z, (int)generation.MapBounds.max.z)), 
+                    Vector3.down, 
+                    out hit, 
+                    120
+                    //LayerMask.NameToLayer("Terrain")
+                );
+                loopCount++;
+            }
+            //Debug.Log(hit.point);
+
+            if (loopCount > maxLoopCountDuringGeneration)
+            {
+                Debug.Log("no spawns left!");
+                break;
             }
 
-            int countInArea = Random.Range(1, 10);
+            int countInArea = generation.random.Next(1, 10);
 
             for (int j = 0; j < countInArea; j++)
             {
-                RaycastHit individual = new();
-                Physics.Raycast(new Vector3(hit.point.x + Random.Range(-10, 10), hit.point.y + 20, hit.point.z + Random.Range(-10, 10)), Vector3.down, out individual, 50);
-                Instantiate(tree, individual.point, Quaternion.identity);
+                RaycastHit chosenPoint = new();
+                // this is WILD
+                while (!Physics.Raycast(new Vector3(
+                    hit.point.x + generation.random.Next(-10, 10),
+                    hit.point.y + 20,
+                    hit.point.z + generation.random.Next(-10, 10)),
+                    Vector3.down,
+                    out chosenPoint,
+                    50
+                //LayerMask.NameToLayer("Terrain")
+                ) && loopCount < maxLoopCountDuringGeneration) loopCount++;
+                Instantiate(tree, chosenPoint.point, Quaternion.identity);
                 i++;
             }
         }
@@ -48,7 +80,7 @@ public class RandomSpawner : MonoBehaviour
         animalSpawnTimer += Time.deltaTime;
         if (animalSpawnTimer > animalSpawnTime)
         {
-            SpawnAnimal();
+            //SpawnAnimal();
         }
     }
 
@@ -60,7 +92,17 @@ public class RandomSpawner : MonoBehaviour
         RaycastHit hit = new();
         while (!foundValidSpawn)
         {
-            foundValidSpawn = Physics.Raycast(new Vector3(Random.Range(100, 900), 80, Random.Range(100, 900)), Vector3.down, out hit, 80);
+            foundValidSpawn = Physics.Raycast(
+                new Vector3(
+                    Random.Range((int)generation.MapBounds.min.x, (int)generation.MapBounds.max.x), 
+                    80, 
+                    Random.Range((int)generation.MapBounds.min.x, (int)generation.MapBounds.max.x)
+                ), 
+                Vector3.down, 
+                out hit, 
+                80, 
+                LayerMask.NameToLayer("Terrain")
+            );
         }
 
         GameObject newAnimal = Instantiate(animal, hit.point + Vector3.up, Quaternion.identity);

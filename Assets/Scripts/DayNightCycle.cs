@@ -2,7 +2,8 @@ using UnityEngine;
 
 public class DayNightCycle : MonoBehaviour
 {
-    [SerializeField] private float dayLength = 60;
+    [SerializeField] private float dayLength = 360;
+    [SerializeField] private float time = 120;
     [SerializeField] private Light globalLight;
     [SerializeField] private LightingSettings settings;
     [SerializeField] private Color fogColorDay;
@@ -14,10 +15,16 @@ public class DayNightCycle : MonoBehaviour
     void Update()
     {
         float rotationAmount = 360 / dayLength * Time.deltaTime;
-        transform.Rotate(0, rotationAmount, 0);
+        time += Time.deltaTime;
+        time %= dayLength;
+        transform.Rotate(rotationAmount, 0, 0);
 
-        LightValue = Mathf.Clamp((1 - Mathf.Abs(transform.rotation.y)) * 2 - 0.5f, 0, 1);
+        // 0 = midnight; dayLength / 2 = noon
+        LightValue = Mathf.Clamp(Mathf.Sin(Mathf.PI * time / dayLength), 0, 1);
+        //Debug.Log(time + " " + LightValue);
+
         RenderSettings.ambientIntensity = LightValue;
         RenderSettings.fogColor = new Color(fogColorDay.r * LightValue, fogColorDay.g * LightValue, fogColorDay.b * LightValue);
+        globalLight.intensity = LightValue + 0.01f;
     }
 }

@@ -27,13 +27,16 @@ public class AnimalMovement : MonoBehaviour
     void Update()
     {
         // Find distance to player
-        float distance = Vector3.Distance(transform.position, player.transform.position);
-        if (distance <= distanceToRunFromPlayer)
+        if (player != null)
         {
-            // run from the player
-            Vector3 runDirection = moveSpeed * (new Vector3(direction.x, 0, direction.y) + (transform.position - player.transform.position).normalized); // vector away with random variation
-            rb.linearVelocity = transform.rotation * new Vector3(runDirection.x, rb.linearVelocity.y, runDirection.z);
-            return;
+            float distance = Vector3.Distance(transform.position, player.transform.position);
+            if (distance <= distanceToRunFromPlayer)
+            {
+                // run from the player
+                Vector3 runDirection = moveSpeed * (new Vector3(direction.x, 0, direction.y) + (transform.position - player.transform.position).normalized); // vector away with random variation
+                rb.linearVelocity = transform.rotation * new Vector3(runDirection.x, rb.linearVelocity.y, runDirection.z);
+                return;
+            }
         }
 
         if (movingTime <= 0)
