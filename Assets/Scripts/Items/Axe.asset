@@ -17,4 +17,7 @@ MonoBehaviour:
   MaxStackSize: 1
   WeaponDurability: 300
   WeaponDamage: 8
+  WeaponHungerLoss: 0.012
   FoodHungerRestore: 0
+  BurnableFuelValue: 0
+  BreakingStrength: 10

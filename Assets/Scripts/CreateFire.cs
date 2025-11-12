@@ -3,6 +3,9 @@ using UnityEngine;
 using UnityEngine.InputSystem;
 
 
+/// <summary>
+/// This class is defunct now; the code is now in the player controller script
+/// </summary>
 public class CreateFire : MonoBehaviour
 {
     

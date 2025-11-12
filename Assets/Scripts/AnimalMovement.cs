@@ -1,7 +1,7 @@
 using UnityEngine;
 
 /// <summary>
-/// Controller for animal movements. Just in general.
+/// Old controller for animal movements, now replaced by a state machine.
 /// </summary>
 public class AnimalMovement : MonoBehaviour
 {
@@ -51,6 +51,7 @@ public class AnimalMovement : MonoBehaviour
         movingTime -= Time.deltaTime;
     }
 
+    
     // Decides a nenw random movement direction and mmoving time
     private void MoveRandomly()
     {

@@ -1,5 +1,6 @@
 using UnityEngine;
 
+[RequireComponent(typeof(Collider))]
 public class Pickupable : MonoBehaviour
 {
     [SerializeField] private ItemAttributes item;

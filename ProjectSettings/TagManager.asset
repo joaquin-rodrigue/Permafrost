@@ -6,6 +6,8 @@ TagManager:
   tags:
   - Light Source
   - Inventory Slot
+  - Tree
+  - PlayerWeapon
   layers:
   - Default
   - TransparentFX

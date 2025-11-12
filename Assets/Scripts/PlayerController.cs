@@ -1,31 +1,41 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using TMPro;
 using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.InputSystem;
-using UnityEngine.UI;
 
 /// <summary>
-///     The controller for the player. Includes code for handling most player controls,
-///     and player health and hunger.
+///     The controller for the player. Includes code for handling all player controls, player health
+///     and hunger, player inventory code, item usage and special code relating to collision.
 /// </summary>
 /// <remarks>
-///     This class makes use of GetComponentsInChildren - thus, re-arranging the order of
-///     the child components will probably break this script in places!
+///     Used to use GetComponentsInChildren() but I changed that decision because it's dumb.<br></br>
+///     This class does a lot - it involves pretty much all code related to the player.<br></br>
+///     They way this class handles Unity input is a little odd, it uses the Update loop to 
+///     get input values, and uses the FixedUpdate loop to actually handle those values. That
+///     means there's some inputs that, even if pressed for a single frame, the boolean for
+///     whatever input you pressed stays true until the next FixedUpdate loop. It's probably
+///     not efficient and I warn you it's not the standard. But its surprisingly effective.
 /// </remarks>
 [RequireComponent(typeof(Rigidbody))]
 [RequireComponent(typeof(PlayerInput))]
 public class PlayerController : MonoBehaviour
 {
-    // Movement variables
+    [Header("Movement")]
     [SerializeField] private float moveSpeed = 5f;
+    [SerializeField] private float sprintSpeed = 12f;
     [SerializeField] private float jumpHeight = 8f;
 
-    [SerializeField] private float health = 100;
-    [SerializeField] private float hunger = 100;
-    private bool isInLight;
+    [Header("Health + Hunger")]
+    [SerializeField] private float maxHealth = 100;
+    [SerializeField] private float maxHunger = 100;
+    [SerializeField] private float invulnTime = 0.35f;
+    private float health;
+    private float hunger;
+    private bool currentlyInvuln;
 
     // Input variables
     private Vector2 moveInput;
@@ -38,57 +48,69 @@ public class PlayerController : MonoBehaviour
     private bool usingItem;
     private bool nextItemInput;
     private bool previousItemInput;
+    private bool sprinting;
+    private bool isInLight;
 
     // Component references
     private PlayerInput playerInput;
     private Rigidbody rb;
     private Collider collision;
     private DayNightCycle daylight;
-    private Image healthImage;
-    private Image hungerImage;
 
     // Inventory
     private Item[] inventory;
     private int selectedItem = 0;
     private int inventorySize;
+    private bool canUseItem = true;
 
     // UI
+    private UIController ui;
     private TMP_Text[] inventoryItemTexts;
 
-    // Weapon related
+    [Header("Item References")]
     [SerializeField] private GameObject meleeWeapon;
-    private int CurrentDamage;
+    [SerializeField] private float useItemCooldown;
+    [SerializeField] private GameObject personalLight;
 
-    // Fire spawning
+    public int CurrentDamage { get; private set; }
+
+    [Header("Fire References")]
     [SerializeField] private GameObject fireplace;
     [SerializeField] private GameObject fireSpawnCheck;
+
     private GameObject currentFire;
     private bool createFireButton;
     private bool canPlaceFire = true;
+
+    [Header("Terrain")]
+    [Tooltip("Points to check under for generating new chunks. Ensure these transforms are far above the player transform!")]
+    [SerializeField] private GameObject[] terrainSpawnCheckPoints;
+    [SerializeField] private LayerMask terrainLayer;
+
+    private RandomTerrainGenerator generator;
+    private float terrainUpdateCheckTimer;
+    private bool chunksGenerating;
 
     #region Start + Update(s)
     // Getting references to necessary objects + initializing the inventory system
     void Start()
     {
+        health = maxHealth;
+        hunger = maxHunger;
+
         playerInput = GetComponent<PlayerInput>();
         rb = GetComponent<Rigidbody>();
         collision = GetComponent<Collider>();
         daylight = GameObject.Find("Directional Light").GetComponent<DayNightCycle>();
-        healthImage = GameObject.Find("Health Image").GetComponent<Image>();
-        hungerImage = GameObject.Find("Food Image").GetComponent<Image>();
+        ui = GameObject.Find("Canvas").GetComponent<UIController>();
+        generator = GameObject.Find("TerrainGenerator").GetComponent<RandomTerrainGenerator>();
 
         // The getcomponentsinchildren call here is gone, instead it must be set in the editor
         meleeWeapon.SetActive(false);
 
         inventorySize = 5;
         inventory = new Item[inventorySize];
-        GameObject[] itemSlots = GameObject.FindGameObjectsWithTag("Inventory Slot");
-        //Debug.Log(itemSlots.Length);
-        inventoryItemTexts = new TMP_Text[itemSlots.Length];
-        for (int i = 0; i < itemSlots.Length; i++)
-        {
-            inventoryItemTexts[i] = itemSlots[i].GetComponentInChildren<TMP_Text>();
-        }
+        //InvokeRepeating(nameof(TerrainUpdateCheck), 1, 1);
     }
 
     // Input handling happens here for more input accuracy
@@ -103,12 +125,13 @@ public class PlayerController : MonoBehaviour
         nextItemInput = playerInput.actions["Next"].WasPressedThisFrame() || nextItemInput;
         previousItemInput = playerInput.actions["Previous"].WasPressedThisFrame() || previousItemInput;
         createFireButton = playerInput.actions["Fire"].WasPressedThisFrame() || createFireButton;
+        sprinting = playerInput.actions["Sprint"].IsInProgress();
     }
 
-    // Processing what the player is doing this frame happens here for smoother and more consistent gameplay
+    // Processing player inputs this frame happens here for smoother and more consistent gameplay
+    // TODO: Clean this up; move some code out to separate functions
     private void FixedUpdate()
     {
-        //Debug.Log(attacking + " " + canAttack);
         // Check if the player is dead
         if (health <= 0)
         {
@@ -117,7 +140,7 @@ public class PlayerController : MonoBehaviour
         }
 
         // Moving
-        float targetSpeed = moveSpeed;
+        float targetSpeed = sprinting ? sprintSpeed : moveSpeed;
         Vector2 targetVelocity = moveInput * targetSpeed;
         rb.linearVelocity = transform.rotation * new Vector3(targetVelocity.x, rb.linearVelocity.y, targetVelocity.y);
 
@@ -128,7 +151,6 @@ public class PlayerController : MonoBehaviour
             rb.AddRelativeForce(jump, ForceMode.Impulse);
             canJump = false;
         }
-
         jumpInput = false;
 
         // Attack
@@ -136,7 +158,6 @@ public class PlayerController : MonoBehaviour
         {
             StartCoroutine(MeleeAttack());
         }
-
         attacking = false;
 
         // The darkness consumes you
@@ -146,13 +167,12 @@ public class PlayerController : MonoBehaviour
         }
 
         // The hunger also consumes you
-        hunger -= 0.01f;
+        hunger -= 0.003f + (sprinting ? 0.009f : 0);
         if (hunger <= 0)
         {
             hunger = 0;
             Hurt(0.05f);
         }
-        hungerImage.rectTransform.localScale = new Vector3(hunger / 100, hunger / 100, 1);
 
         // inventory management
         if (nextItemInput)
@@ -171,52 +191,71 @@ public class PlayerController : MonoBehaviour
                 selectedItem = inventorySize - 1;
             }
         }
-
         nextItemInput = false;
         previousItemInput = false;
         // todo: drop
 
-        // Use item - all the code is done in UseItem
-        if (usingItem)
+        // Use/Update item - all the code is done in UseItem and UpdateItem
+        UpdateItem();
+        if (usingItem && canUseItem)
         {
             UseItem();
         }
-
-        // update the UI
-        for (int i = 0; i < inventoryItemTexts.Length; i++)
-        {
-            if (inventory[i] != null)
-            {
-                inventoryItemTexts[i].text = inventory[i].GetAttributes().Name + (inventory[i].GetCount() > 1 ? " x" + inventory[i].GetCount() : "");
-            }
-            else
-            {
-                inventoryItemTexts[i].text = "None";
-            }
-            inventoryItemTexts[i].fontSize = 18;
-        }
-        inventoryItemTexts[selectedItem].fontSize = 27;
 
         // Create a fire
         if (createFireButton && canPlaceFire)
         {
             CreateFire();
         }
-
         createFireButton = false;
+
+        // update the UI
+        ui.UpdateInventoryUI(inventory, selectedItem);
+        ui.UpdateButtonPrompts(inventory[selectedItem]);
+        ui.UpdateHungerUI(hunger);
+
+        // Check terrain updating
+        terrainUpdateCheckTimer += chunksGenerating ? 0 : Time.fixedDeltaTime;
+        if (terrainUpdateCheckTimer > 1)
+        {
+            terrainUpdateCheckTimer = 0;
+            TerrainUpdateCheck();
+        }
+    }
+
+    /// <summary>
+    /// Periodic check to generate a new chunk. Only runs up to once per second to prevent too much lag.
+    /// </summary>
+    private void TerrainUpdateCheck()
+    {
+        // Terrain generation update check
+        foreach (GameObject point in terrainSpawnCheckPoints)
+        {
+            Transform t = point.transform;
+            if (!Physics.Raycast(t.position, Vector3.down, 128, terrainLayer))
+            {
+                Debug.Log("generate new chunk!" + Time.frameCount);
+                Vector2 temp = new(t.position.x, t.position.z);
+                chunksGenerating = true;
+                generator.GenerateNewChunk(temp);
+                chunksGenerating = false;
+            }
+        }
     }
     #endregion
 
     #region Weapon/Hurt Behavior
     // The melee attack coroutine
     // TODO: replace this with a call for melee attack animation on the given weapon equipped
+    // well some of the code will remain here but the animation wont
     private IEnumerator MeleeAttack()
     {
         canAttack = false;
         meleeWeapon.SetActive(true);
-        if ((inventory[selectedItem]?.GetAttributes().Type & (int) ItemType.Weapon) == (int) ItemType.Weapon)
+        if (inventory[selectedItem] != null && inventory[selectedItem].IsType(ItemType.Weapon))
         {
-            CurrentDamage = inventory[selectedItem].GetAttributes().WeaponDamage;
+            CurrentDamage = inventory[selectedItem].Stats.WeaponDamage;
+            hunger -= inventory[selectedItem].Stats.WeaponHungerLoss;
         }
         else
         {
@@ -229,12 +268,31 @@ public class PlayerController : MonoBehaviour
         canAttack = true;
     }
 
+    // Simple way for the objects you hit to communicate back that the weapon's durability needs to drop
+    public void MeleeHit()
+    {
+        inventory[selectedItem].DecrementDurability();
+        if (inventory[selectedItem].GetDurability() <= 0)
+        {
+            DecrementItemCount();
+        }
+    }
+
     // Hurts the player
     public void Hurt(float damage)
     {
+        if (currentlyInvuln) return;
         health -= damage;
-        Debug.Log(health);
-        healthImage.rectTransform.localScale = new Vector3(health / 100, health / 100, 1);
+        StartCoroutine(Invulnerability());
+        //Debug.Log(health);
+        ui.UpdateHealthUI(health);
+    }
+
+    private IEnumerator Invulnerability()
+    {
+        currentlyInvuln = true;
+        yield return new WaitForSeconds(invulnTime);
+        currentlyInvuln = false;
     }
     #endregion
 
@@ -252,35 +310,56 @@ public class PlayerController : MonoBehaviour
                 Destroy(item);
                 break;
             }
-            else if (inventory[i].GetAttributes().Name.Equals(theThingWeWant.Name)
-                && inventory[i].GetCount() < inventory[i].GetAttributes().MaxStackSize)
+            else if (inventory[i].Stats.Name.Equals(theThingWeWant.Name)
+                && inventory[i].GetCount() < inventory[i].Stats.MaxStackSize)
             {
-                inventory[i].IncreaseCount();
+                inventory[i].IncrementCount();
                 Destroy(item);
                 break;
             }
         }
     }
 
+    // Used for specific item types to update their state
+    private void UpdateItem()
+    {
+        if (inventory[selectedItem] == null) return;
+
+        Item item = inventory[selectedItem];
+        ItemAttributes stats = inventory[selectedItem].Stats;
+
+        // LIGHTS
+        if (item.IsType(ItemType.Light))
+        {
+            personalLight.SetActive(true);
+            Light theLight = personalLight.GetComponent<Light>();
+            theLight.color = stats.LightColor;
+            theLight.intensity = stats.LightIntensity;
+            theLight.range = stats.LightRange;
+            item.DecrementDurability();
+        }
+        else
+        {
+            personalLight.SetActive(false);
+        }
+    }
+
     // Uses the currently selected item
     private void UseItem()
     {
-        if (inventory[selectedItem] == null)
-        {
-            return;
-        }
+        if (inventory[selectedItem] == null) return;
 
+        StartCoroutine(ItemCooldown());
         Item item = inventory[selectedItem];
-        // todo: make the item usage check what type of item you are using and pull the values to use from the stats
-        ItemAttributes stats = inventory[selectedItem].GetAttributes();
+        ItemAttributes stats = inventory[selectedItem].Stats;
 
         // WEAPONS
-        if ((stats.Type & (int) ItemType.Weapon) == (int) ItemType.Weapon)
+        if (item.IsType(ItemType.Weapon))
         {
             // something? attacks are handled separately
         }
         // FOODS
-        if ((stats.Type & (int) ItemType.Food) == (int) ItemType.Food)
+        if (item.IsType(ItemType.Food))
         {
             hunger += stats.FoodHungerRestore;
             if (hunger > 100)
@@ -290,21 +369,23 @@ public class PlayerController : MonoBehaviour
             DecrementItemCount();
         }
         // TREE CHOPS
-        if ((stats.Type & (int) ItemType.TreeChop) == (int) ItemType.TreeChop)
+        if (item.IsType(ItemType.TreeChop))
         {
-            // hit tree, remove durability
-            item.SetDurability(item.GetDurability() - 1);
-            if (item.GetDurability() <= 0)
-            {
-                DecrementItemCount();
-            }
+            // todo: do we need to tie usage here if tree chop is part of attack animations
         }
+    }
+
+    private IEnumerator ItemCooldown()
+    {
+        canUseItem = false;
+        yield return new WaitForSeconds(useItemCooldown);
+        canUseItem = true;
     }
 
     // Decrements the item count of a stack, or deletes the stack if empty
     private void DecrementItemCount()
     {
-        inventory[selectedItem].DecreaseCount();
+        inventory[selectedItem].DecrementCount();
         if (inventory[selectedItem].GetCount() <= 0)
         {
             inventory[selectedItem] = null;
@@ -317,21 +398,21 @@ public class PlayerController : MonoBehaviour
     private void CreateFire()
     {
         // Check fire building conditions
-        if (inventory[selectedItem] == null || (inventory[selectedItem].GetAttributes().Type & (int) ItemType.Burnable) != (int) ItemType.Burnable)
+        if (inventory[selectedItem] == null || !inventory[selectedItem].IsType(ItemType.Burnable)) return;
+        if (!Physics.Raycast(fireSpawnCheck.transform.position, Vector3.down, out RaycastHit hit, 5)) return;
+
+        // now we build the fire (or add fuel to an exisiting one)
+        if (hit.transform.TryGetComponent(out FireLifespan fire))
         {
-            return;
+            fire.AddFuel(inventory[selectedItem].Stats.BurnableFuelValue);
         }
-        bool positionLegal = Physics.Raycast(fireSpawnCheck.transform.position, Vector3.down, out RaycastHit hit, 5);
-        if (!positionLegal)
+        else
         {
-            return;
+            StartCoroutine(PlaceFireCooldown());
+            currentFire = Instantiate(fireplace, hit.point + new Vector3(0, 0.5f, 0), Quaternion.identity);
+            currentFire.GetComponent<FireLifespan>().AddFuel(inventory[selectedItem].Stats.BurnableFuelValue);
         }
 
-        // now we build the fire
-        StartCoroutine(PlaceFireCooldown());
-
-        currentFire = Instantiate(fireplace, hit.point, Quaternion.identity);
-        currentFire.GetComponent<FireLifespan>().AddFuel(inventory[selectedItem].GetAttributes().BurnableFuelValue);
         DecrementItemCount();
     }
 
@@ -341,6 +422,37 @@ public class PlayerController : MonoBehaviour
         canPlaceFire = false;
         yield return new WaitForSeconds(5f);
         canPlaceFire = true;
+    }
+    #endregion
+
+    #region Breaking Objects Behavior
+    private void CheckBreakable(Breakable obj)
+    {
+        if (inventory[selectedItem] == null || obj.GetDurability() <= 0) return;
+
+        if (inventory[selectedItem].IsType(obj.Stats.TypeForBreaking))
+        {
+            obj.DecreaseDurability(inventory[selectedItem].Stats.BreakingStrength);
+            Debug.Log("Tree at durability " + obj.GetDurability());
+        }
+
+        if (obj.GetDurability() <= 0)
+        {
+            int dropCount = Random.Range(obj.Stats.MinDropCount, obj.Stats.MaxDropCount);
+            for (int i = 0; i < dropCount; i++)
+            {
+                Instantiate(obj.Stats.DropItem, obj.gameObject.transform.position + new Vector3(
+                    Random.Range(-1f, 1f), 1, Random.Range(-1f, 1f)
+                ), Quaternion.identity);
+            }
+            Destroy(obj.gameObject);
+        }
+
+        inventory[selectedItem].DecrementDurability();
+        if (inventory[selectedItem].GetDurability() <= 0)
+        {
+            DecrementItemCount();
+        }
     }
     #endregion
 
@@ -360,7 +472,12 @@ public class PlayerController : MonoBehaviour
         }
         if (other.GetComponent<Pickupable>() != null)
         {
-            PickUpItem(other.gameObject);
+            // quick distance check to make sure disjointed hitboxes don't cause item pickup
+            if (Vector3.Distance(transform.position, other.transform.position) < 1.5f) PickUpItem(other.gameObject);
+        }
+        if (other.CompareTag("Tree"))
+        {
+            CheckBreakable(other.GetComponent<Breakable>());
         }
     }
 

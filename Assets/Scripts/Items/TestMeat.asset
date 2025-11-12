@@ -13,8 +13,11 @@ MonoBehaviour:
   m_Name: TestMeat
   m_EditorClassIdentifier: 
   Type: 1
-  Name: test
+  Name: Meat
   MaxStackSize: 5
   WeaponDurability: 0
   WeaponDamage: 0
+  WeaponHungerLoss: 0
   FoodHungerRestore: 40
+  BurnableFuelValue: 0
+  BreakingStrength: 0

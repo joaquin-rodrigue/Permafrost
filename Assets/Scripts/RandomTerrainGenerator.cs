@@ -3,27 +3,30 @@ using System.Collections.Generic;
 using UnityEngine;
 
 /// <summary>
-/// Generates pseudorandom terrain using a Perlin Noise algorithm.
-/// Still in development lol
-/// May or may not have a strange memory leak?
+///     Generates pseudorandom terrain using a Perlin Noise algorithm.<br></br>
+///     Still in development lol<br></br>
+///     Currently might be in need of some optimization; the average chunk generation time is ~300-350 ms
 /// </summary>
 public class RandomTerrainGenerator : MonoBehaviour
 {
-    private List<Terrain> terrains;
+    private List<Vector2> terrains;
     private byte[] permutation;
     private byte[] p;
 
-    [SerializeField] private int seed;
     public System.Random random { get; private set; }
     public Bounds MapBounds { get; set; }
-    [SerializeField] private int terrainCellSize;
 
+    [Tooltip("Leave as '0' for random")]
+    [SerializeField] private int seed;
+    [SerializeField] private int terrainCellSize;
     [SerializeField] private RandomSpawner objectSpawner;
+    [SerializeField] private TerrainLayer mat;
 
     // Starts the generation and stuff
     void Start()
     {
-        //terrains = new List<Terrain>();
+        terrains = new List<Vector2>();
+        //Debug.LogWarning(mat);
         if (seed == 0)
         {
             seed = UnityEngine.Random.Range(int.MinValue, int.MaxValue);
@@ -40,6 +43,7 @@ public class RandomTerrainGenerator : MonoBehaviour
         catch (Exception e)
         {
             Debug.LogError("Exception during world gen: " + e.Message);
+            Debug.LogError(e.StackTrace);
             Debug.LogError("Aborting world gen");
         }
         long done = DateTime.Now.Ticks;
@@ -51,9 +55,20 @@ public class RandomTerrainGenerator : MonoBehaviour
         player.transform.position = chosenPoint.point + Vector3.up;
     }
 
-    private void Update()
+    public void GenerateNewChunk(Vector2 pos)
     {
+        Vector2 cell = pos / terrainCellSize;
+        Vector2 temp2 = new Vector2(Mathf.Floor(cell.x), Mathf.Floor(cell.y)) * terrainCellSize;
         
+        foreach (Vector2 existing in terrains)
+        {
+            if (existing.Equals(temp2))
+            {
+                return;
+            }
+        }
+        Debug.Log("working until generate" + temp2);
+        GenerateNewBlock(temp2);
     }
 
     #region Grid Blocks
@@ -91,7 +106,12 @@ public class RandomTerrainGenerator : MonoBehaviour
     /// <param name="pos">The position in Unity world coordinates to place the terrain. This should be a multiple of terrainCellSize.</param>
     private void GenerateNewBlock(Vector2 pos)
     {
-        Terrain newBlock = Terrain.CreateTerrainGameObject(new TerrainData()).GetComponent<Terrain>();
+        long time = DateTime.Now.Ticks;
+        TerrainData data = new();
+        TerrainLayer[] layers = new TerrainLayer[1];
+        layers[0] = mat;
+        data.terrainLayers = layers;
+        Terrain newBlock = Terrain.CreateTerrainGameObject(data).GetComponent<Terrain>();
         newBlock.transform.position = new Vector3(pos.x, 0, pos.y);
         newBlock.gameObject.layer = LayerMask.NameToLayer("Terrain");
         newBlock.GetComponent<TerrainCollider>().providesContacts = true;
@@ -103,9 +123,9 @@ public class RandomTerrainGenerator : MonoBehaviour
         MapBounds = new(new Vector3(pos.x + terrainCellSize / 2, 0, pos.y + terrainCellSize / 2), new Vector3(terrainCellSize, 0, terrainCellSize));
         //Debug.Log(MapBounds);
         //Debug.Log(pos);
-        //terrains.Add(newBlock);
+        terrains.Add(pos);
 
-        Vector2 cell = pos / terrainCellSize + new Vector2(7, 7);
+        Vector2 cell = pos / terrainCellSize + new Vector2(31, 31);
         //Debug.Log(cell);
         float[,] heights = new float[terrainCellSize + 1, terrainCellSize + 1];
         for (int i = 0; i < terrainCellSize + 1; i++)
@@ -118,9 +138,13 @@ public class RandomTerrainGenerator : MonoBehaviour
         }
 
         newBlock.terrainData.SetHeights(0, 0, heights);
-
+        //newBlock.terrainData.SetBaseMapDirty();
+        //Debug.LogWarning(newBlock.terrainData.terrainLayers[0]);
         FindAndConnectNeighbors(newBlock);
         objectSpawner.Generate();
+        long done = DateTime.Now.Ticks;
+        Debug.Log("Generated block " + cell + " in " + ((done - time) / 1000f) + " ms");
+
     }
     #endregion
 
