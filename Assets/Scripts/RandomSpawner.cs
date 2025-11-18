@@ -7,6 +7,7 @@ using UnityEngine;
 /// </summary>
 public class RandomSpawner : MonoBehaviour
 {
+    // Object refs
     [Header("Objects + Ranges")]
     [SerializeField] private GameObject animal;
     [SerializeField] private GameObject wolf;
@@ -15,8 +16,8 @@ public class RandomSpawner : MonoBehaviour
     [SerializeField] private GameObject shack; 
     [SerializeField] private float maxSpawningDistance;
     [SerializeField] private float minSpawningDistance;
-    [SerializeField] private float despawningDistance;
 
+    // The chicken
     private float animalSpawnTime;
     private float animalSpawnTimer;
     private Stack<GameObject> animalPool = new();
@@ -25,6 +26,7 @@ public class RandomSpawner : MonoBehaviour
     [SerializeField] private float animalSpawnTimeMax;
     [SerializeField] private float animalSpawnTimeMin;
 
+    // The wolf
     private float wolfSpawnTime;
     private float wolfSpawnTimer;
     private Stack<GameObject> wolfPool = new();
@@ -33,6 +35,7 @@ public class RandomSpawner : MonoBehaviour
     [SerializeField] private float wolfSpawnTimeMax;
     [SerializeField] private float wolfSpawnTimeMin;
 
+    // The foot
     private float bigfootSpawnTime;
     private float bigfootSpawnTimer;
     private bool bigfootAlive;
@@ -40,14 +43,19 @@ public class RandomSpawner : MonoBehaviour
     [SerializeField] private float bigfootRespawnTime;
     [SerializeField] private float bigfootRespawnModifier;
 
+    // The happy little trees
     private int treeCount;
     [Header("Trees")]
     [SerializeField] private int treeCountMax;
     [SerializeField] private int treeCountMin;
 
+    // The shacks
     [Header("Shacks")]
     [SerializeField] private float shackSpawnChance;
+    [SerializeField] private int[] itemSpawnWeights;
+    [SerializeField] private GameObject[] itemsToSpawn;
 
+    // Everything else
     [Header("Other")]
     [SerializeField] private RandomTerrainGenerator generation;
     [SerializeField] private Transform playerTransform;
@@ -55,6 +63,8 @@ public class RandomSpawner : MonoBehaviour
     [SerializeField] private int maxLoopCountDuringGeneration = 1000;
     [SerializeField] private int maxLoopCountDuringSpawning = 500;
 
+    #region Initial Object Spawning
+    // Start method - generates the object pools mainly
     private void Start()
     {
         bigfootSpawnTime = bigfootRespawnTime;
@@ -160,6 +170,7 @@ public class RandomSpawner : MonoBehaviour
             }
         }
     }
+    #endregion
 
     #region Object Spawning Over Time
     // Update is called once per frame
@@ -286,6 +297,11 @@ public class RandomSpawner : MonoBehaviour
         wolf.GetComponent<Rigidbody>().angularVelocity = Vector3.zero;
         wolf.SetActive(false);
         wolfPool.Push(wolf);
+    }
+
+    public void DeadBigfoot()
+    {
+        bigfootAlive = false;
     }
     #endregion
 }

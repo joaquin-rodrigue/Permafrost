@@ -28,6 +28,10 @@ public class AnimalWander : AnimalState
         {
             controller.SetState(new AnimalFlee(controller));
         }
+        if (distance >= controller.DespawnDistance)
+        {
+            controller.SetState(new AnimalDespawn(controller));
+        }
     }
 
     public override void OnStateEnter()

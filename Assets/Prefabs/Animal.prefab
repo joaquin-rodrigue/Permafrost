@@ -98,6 +98,7 @@ MonoBehaviour:
   maxHealth: 20
   moveSpeed: 0.7
   distanceToRunFromPlayer: 12
+  distanceToDespawn: 200
   wanderTimeInterval: 5
   drop: {fileID: 2378287371582904568, guid: b7ceeb9df7790c64c90a42ae456c2277, type: 3}
   model: {fileID: 4344605516434823391}

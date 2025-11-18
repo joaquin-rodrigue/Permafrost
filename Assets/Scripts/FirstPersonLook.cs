@@ -2,29 +2,18 @@
 
 public class FirstPersonLook : MonoBehaviour
 {
-    [SerializeField]
-    Transform character;
+    [SerializeField] private Transform character;
+    [SerializeField] private PlayerController controls;
     public float sensitivity = 2;
     public float smoothing = 1.5f;
 
     Vector2 velocity;
     Vector2 frameVelocity;
 
-
-    void Reset()
-    {
-        // Get the character from the FirstPersonMovement in parents.
-        character = GetComponentInParent<FirstPersonMovement>().transform;
-    }
-
-    void Start()
-    {
-        // Lock the mouse cursor to the game screen.
-        Cursor.lockState = CursorLockMode.Locked;
-    }
-
     void Update()
     {
+        if (controls.IsPaused) return;
+        // todo: if im reclaiming this code it needs to use the new input system
         // Get smooth velocity.
         Vector2 mouseDelta = new Vector2(Input.GetAxisRaw("Mouse X"), Input.GetAxisRaw("Mouse Y"));
         Vector2 rawFrameVelocity = Vector2.Scale(mouseDelta, Vector2.one * sensitivity);

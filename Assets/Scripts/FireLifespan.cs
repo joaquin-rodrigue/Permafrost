@@ -24,4 +24,9 @@ public class FireLifespan : MonoBehaviour
     {
         lifespan += fuel;
     }
+
+    public float GetFuel()
+    {
+        return lifespan;
+    }
 }

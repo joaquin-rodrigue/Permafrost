@@ -125,7 +125,7 @@ public class BigfootStateController : MonoBehaviour
         {
             Instantiate(drop, transform.position, Quaternion.identity);
             health = maxHealth;
-            //GameObject.Find("TerrainGenerator").GetComponent<RandomSpawner>()
+            GameObject.Find("TerrainGenerator").GetComponent<RandomSpawner>().DeadBigfoot();
         }
     }
 

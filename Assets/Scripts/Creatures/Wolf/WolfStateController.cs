@@ -19,6 +19,7 @@ public class WolfStateController : MonoBehaviour
     [SerializeField] private float wanderTimeInterval;
     [SerializeField] private float attackDistance;
     [SerializeField] private float attackTimeInterval;
+    [SerializeField] private float distanceToDespawn;
 
     [Header("Object References")]
     [SerializeField] private GameObject drop;
@@ -34,6 +35,7 @@ public class WolfStateController : MonoBehaviour
     public float MaxStalkDistance { get =>  stalkingDistance; }
     public float AttackDistance { get => attackDistance; }
     public float AttackInterval { get => attackTimeInterval; }
+    public float DespawnDistance { get => distanceToDespawn; }
 
     // Other object refs
     private WolfState currentState;

@@ -11,6 +11,7 @@ public class AnimalStateController : MonoBehaviour
     private float health;
     [SerializeField] private float moveSpeed;
     [SerializeField] private float distanceToRunFromPlayer;
+    [SerializeField] private float distanceToDespawn;
     public float wanderTimeInterval;
 
     [Header("Object References")]
@@ -20,6 +21,7 @@ public class AnimalStateController : MonoBehaviour
     // Public getters for controller data
     public float MinRunDistance { get => distanceToRunFromPlayer; }
     public Vector3 PlayerPosition { get => player.transform.position; }
+    public float DespawnDistance { get => distanceToDespawn; }
 
     // Other object refs
     private GameObject player;

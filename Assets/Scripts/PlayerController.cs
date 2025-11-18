@@ -24,6 +24,7 @@ using UnityEngine.InputSystem;
 [RequireComponent(typeof(PlayerInput))]
 public class PlayerController : MonoBehaviour
 {
+    // Movement
     [Header("Movement")]
     [SerializeField] private float moveSpeed = 5f;
     [SerializeField] private float sprintSpeed = 12f;
@@ -50,6 +51,8 @@ public class PlayerController : MonoBehaviour
     private bool previousItemInput;
     private bool sprinting;
     private bool isInLight;
+    private bool interacting;
+    private bool pauseInput;
 
     // Component references
     private PlayerInput playerInput;
@@ -66,22 +69,30 @@ public class PlayerController : MonoBehaviour
     // UI
     private UIController ui;
     private TMP_Text[] inventoryItemTexts;
+    private bool interactUIActive;
+    public bool IsPaused { get; private set; }
 
+    // Other item related
     [Header("Item References")]
     [SerializeField] private GameObject meleeWeapon;
     [SerializeField] private float useItemCooldown;
     [SerializeField] private GameObject personalLight;
+    [SerializeField] private Transform interactCheckPoint;
 
     public int CurrentDamage { get; private set; }
 
+    // Fires
     [Header("Fire References")]
     [SerializeField] private GameObject fireplace;
     [SerializeField] private GameObject fireSpawnCheck;
+    [SerializeField] private ItemAttributes torchStats;
 
     private GameObject currentFire;
     private bool createFireButton;
     private bool canPlaceFire = true;
+    
 
+    // Terrain
     [Header("Terrain")]
     [Tooltip("Points to check under for generating new chunks. Ensure these transforms are far above the player transform!")]
     [SerializeField] private GameObject[] terrainSpawnCheckPoints;
@@ -90,6 +101,9 @@ public class PlayerController : MonoBehaviour
     private RandomTerrainGenerator generator;
     private float terrainUpdateCheckTimer;
     private bool chunksGenerating;
+
+    // Saving data
+    [SerializeField] private SaveData dataCollector;
 
     #region Start + Update(s)
     // Getting references to necessary objects + initializing the inventory system
@@ -107,7 +121,7 @@ public class PlayerController : MonoBehaviour
 
         // The getcomponentsinchildren call here is gone, instead it must be set in the editor
         meleeWeapon.SetActive(false);
-
+        Cursor.lockState = CursorLockMode.Locked;
         inventorySize = 5;
         inventory = new Item[inventorySize];
         //InvokeRepeating(nameof(TerrainUpdateCheck), 1, 1);
@@ -126,6 +140,8 @@ public class PlayerController : MonoBehaviour
         previousItemInput = playerInput.actions["Previous"].WasPressedThisFrame() || previousItemInput;
         createFireButton = playerInput.actions["Fire"].WasPressedThisFrame() || createFireButton;
         sprinting = playerInput.actions["Sprint"].IsInProgress();
+        interacting = playerInput.actions["Interact"].WasPressedThisFrame() || interacting;
+        pauseInput = playerInput.actions["Pause"].IsPressed() || pauseInput;
     }
 
     // Processing player inputs this frame happens here for smoother and more consistent gameplay
@@ -138,6 +154,14 @@ public class PlayerController : MonoBehaviour
             Debug.LogError("you are ded. not big surprise");
             return;
         }
+
+        // Check if the game is paused
+        if (pauseInput || IsPaused)
+        {
+            PauseGame();
+            return;
+        }
+        pauseInput = false;
 
         // Moving
         float targetSpeed = sprinting ? sprintSpeed : moveSpeed;
@@ -202,6 +226,13 @@ public class PlayerController : MonoBehaviour
             UseItem();
         }
 
+        // Interact with something
+        if (interacting)
+        {
+            TryInteract();
+        }
+        interacting = false;
+
         // Create a fire
         if (createFireButton && canPlaceFire)
         {
@@ -221,6 +252,31 @@ public class PlayerController : MonoBehaviour
             terrainUpdateCheckTimer = 0;
             TerrainUpdateCheck();
         }
+
+        dataCollector.timeSurvived += Time.fixedDeltaTime;
+    }
+
+    /// <summary>
+    /// Pauses the game.
+    /// </summary>
+    private void PauseGame()
+    {
+        Time.timeScale = 0f;
+        IsPaused = true;
+        Cursor.lockState = CursorLockMode.Confined;
+        ui.ActivatePauseMenu();
+    }
+
+    /// <summary>
+    /// Unpauses the game.
+    /// </summary>
+    public void UnpauseGame()
+    {
+        IsPaused = false;
+        pauseInput = false;
+        Time.timeScale = 1f;
+        Cursor.lockState = CursorLockMode.Locked;
+        ui.DeactivatePauseMenu();
     }
 
     /// <summary>
@@ -323,6 +379,8 @@ public class PlayerController : MonoBehaviour
     // Used for specific item types to update their state
     private void UpdateItem()
     {
+        personalLight.SetActive(false);
+        isInLight = false;
         if (inventory[selectedItem] == null) return;
 
         Item item = inventory[selectedItem];
@@ -332,15 +390,12 @@ public class PlayerController : MonoBehaviour
         if (item.IsType(ItemType.Light))
         {
             personalLight.SetActive(true);
+            isInLight = true;
             Light theLight = personalLight.GetComponent<Light>();
             theLight.color = stats.LightColor;
             theLight.intensity = stats.LightIntensity;
             theLight.range = stats.LightRange;
             item.DecrementDurability();
-        }
-        else
-        {
-            personalLight.SetActive(false);
         }
     }
 
@@ -393,6 +448,19 @@ public class PlayerController : MonoBehaviour
     }
     #endregion
 
+    #region Interact Button Stuff
+    private void TryInteract()
+    {
+        RaycastHit hit;
+        if (!Physics.Raycast(interactCheckPoint.transform.position, interactCheckPoint.forward, out hit, 5)) return;
+        if (hit.collider.TryGetComponent(out FireLifespan obj))
+        {
+            ui.OpenFireplaceUI(obj);
+            currentFire = obj.gameObject;
+        }
+    }
+    #endregion
+
     #region Fire Mechanics
     // Creates a fire, if possible
     private void CreateFire()
@@ -401,17 +469,10 @@ public class PlayerController : MonoBehaviour
         if (inventory[selectedItem] == null || !inventory[selectedItem].IsType(ItemType.Burnable)) return;
         if (!Physics.Raycast(fireSpawnCheck.transform.position, Vector3.down, out RaycastHit hit, 5)) return;
 
-        // now we build the fire (or add fuel to an exisiting one)
-        if (hit.transform.TryGetComponent(out FireLifespan fire))
-        {
-            fire.AddFuel(inventory[selectedItem].Stats.BurnableFuelValue);
-        }
-        else
-        {
-            StartCoroutine(PlaceFireCooldown());
-            currentFire = Instantiate(fireplace, hit.point + new Vector3(0, 0.5f, 0), Quaternion.identity);
-            currentFire.GetComponent<FireLifespan>().AddFuel(inventory[selectedItem].Stats.BurnableFuelValue);
-        }
+        // now we build the fire 
+        StartCoroutine(PlaceFireCooldown());
+        currentFire = Instantiate(fireplace, hit.point + new Vector3(0, 0.5f, 0), Quaternion.identity);
+        currentFire.GetComponent<FireLifespan>().AddFuel(inventory[selectedItem].Stats.BurnableFuelValue);
 
         DecrementItemCount();
     }
@@ -422,6 +483,34 @@ public class PlayerController : MonoBehaviour
         canPlaceFire = false;
         yield return new WaitForSeconds(5f);
         canPlaceFire = true;
+    }
+
+    // Adds fuel to a fire you have selected
+    public void AddFuelToSelectedFire()
+    {
+        if (currentFire == null) return;
+        Item item = inventory[selectedItem];
+        if (item == null || !item.IsType(ItemType.Burnable)) return;
+        currentFire.GetComponent<FireLifespan>().AddFuel(item.Stats.BurnableFuelValue);
+        DecrementItemCount();
+    }
+
+    // Creates a torch if you have the wood/inventory space to do so
+    public void CreateTorch()
+    {
+        if (currentFire == null) return;
+        Item item = inventory[selectedItem];
+        if (item == null || !item.IsType(ItemType.Burnable)) return;
+        for (int i = 0; i < inventorySize; i++)
+        {
+            if (inventory[i] == null)
+            {
+                Item theTorch = new Item(torchStats);
+                inventory[i] = theTorch;
+                DecrementItemCount();
+                break;
+            }
+        }
     }
     #endregion
 
@@ -478,6 +567,14 @@ public class PlayerController : MonoBehaviour
         if (other.CompareTag("Tree"))
         {
             CheckBreakable(other.GetComponent<Breakable>());
+        }
+    }
+
+    private void OnTriggerStay(Collider other)
+    {
+        if (other.CompareTag("Light Source"))
+        {
+            isInLight = true;
         }
     }
 

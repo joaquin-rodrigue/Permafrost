@@ -27,6 +27,10 @@ public class WolfWander : WolfState
         {
             controller.SetState(new WolfStalk(controller));
         }
+        if (distance >= controller.DespawnDistance)
+        {
+            controller.SetState(new WolfDespawn(controller));
+        }
     }
 
     public override void OnStateEnter()
