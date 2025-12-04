@@ -12,13 +12,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 124095c94aad8114ca62a749fa860730, type: 3}
   m_Name: Berries
   m_EditorClassIdentifier: 
-  Type: 0
-  Name: 
-  MaxStackSize: 0
+  Type: 1
+  Name: Berries
+  MaxStackSize: 50
   WeaponDurability: 0
   WeaponDamage: 0
   WeaponHungerLoss: 0
-  FoodHungerRestore: 0
+  FoodHungerRestore: 12
   BurnableFuelValue: 0
   BreakingStrength: 0
   LightDurability: 0

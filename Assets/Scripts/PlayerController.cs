@@ -69,7 +69,7 @@ public class PlayerController : MonoBehaviour
     // UI
     private UIController ui;
     private TMP_Text[] inventoryItemTexts;
-    private bool interactUIActive;
+    public bool InteractUIActive { get; private set; }
     public bool IsPaused { get; private set; }
 
     // Other item related
@@ -90,7 +90,10 @@ public class PlayerController : MonoBehaviour
     private GameObject currentFire;
     private bool createFireButton;
     private bool canPlaceFire = true;
-    
+
+    // The car!!!!
+    [Header("Car")]
+    [SerializeField] private GameObject car;
 
     // Terrain
     [Header("Terrain")]
@@ -162,6 +165,15 @@ public class PlayerController : MonoBehaviour
             return;
         }
         pauseInput = false;
+
+        if (Cursor.lockState == CursorLockMode.Locked)
+        {
+            InteractUIActive = false;
+        }
+
+        // Update time survived
+        dataCollector.timeSurvived += Time.fixedDeltaTime;
+        //Debug.Log(dataCollector.timeSurvived);
 
         // Moving
         float targetSpeed = sprinting ? sprintSpeed : moveSpeed;
@@ -252,8 +264,6 @@ public class PlayerController : MonoBehaviour
             terrainUpdateCheckTimer = 0;
             TerrainUpdateCheck();
         }
-
-        dataCollector.timeSurvived += Time.fixedDeltaTime;
     }
 
     /// <summary>
@@ -344,6 +354,7 @@ public class PlayerController : MonoBehaviour
         ui.UpdateHealthUI(health);
     }
 
+    // Invulnerability timer between hits
     private IEnumerator Invulnerability()
     {
         currentlyInvuln = true;
@@ -364,6 +375,7 @@ public class PlayerController : MonoBehaviour
             {
                 inventory[i] = new Item(theThingWeWant);
                 Destroy(item);
+                dataCollector.itemsGathered++;
                 break;
             }
             else if (inventory[i].Stats.Name.Equals(theThingWeWant.Name)
@@ -371,6 +383,7 @@ public class PlayerController : MonoBehaviour
             {
                 inventory[i].IncrementCount();
                 Destroy(item);
+                dataCollector.itemsGathered++;
                 break;
             }
         }
@@ -430,6 +443,7 @@ public class PlayerController : MonoBehaviour
         }
     }
 
+    // Cooldown between using items (because I managed to turbo chug 4 foods in 4 frames one time)
     private IEnumerator ItemCooldown()
     {
         canUseItem = false;
@@ -449,15 +463,29 @@ public class PlayerController : MonoBehaviour
     #endregion
 
     #region Interact Button Stuff
+    // Raycasts in front of you; determines what item to interact with in front of you
     private void TryInteract()
     {
         RaycastHit hit;
-        if (!Physics.Raycast(interactCheckPoint.transform.position, interactCheckPoint.forward, out hit, 5)) return;
-        if (hit.collider.TryGetComponent(out FireLifespan obj))
+        if (!Physics.Raycast(interactCheckPoint.transform.position, interactCheckPoint.forward, out hit, 5))
         {
-            ui.OpenFireplaceUI(obj);
-            currentFire = obj.gameObject;
+            ui.SetErrorText("Nothing important here...");
+            return;
         }
+        if (hit.collider.TryGetComponent(out FireLifespan fire))
+        {
+            ui.OpenFireplaceUI(fire);
+            currentFire = fire.gameObject;
+            InteractUIActive = true;
+            return;
+        }
+        if (hit.collider.TryGetComponent(out TheCar theCar))
+        {
+            ui.OpenCarUI(theCar);
+            InteractUIActive = true;
+            return;
+        }
+        ui.SetErrorText("Nothing important here...");
     }
     #endregion
 
@@ -466,14 +494,23 @@ public class PlayerController : MonoBehaviour
     private void CreateFire()
     {
         // Check fire building conditions
-        if (inventory[selectedItem] == null || !inventory[selectedItem].IsType(ItemType.Burnable)) return;
-        if (!Physics.Raycast(fireSpawnCheck.transform.position, Vector3.down, out RaycastHit hit, 5)) return;
-
+        if (inventory[selectedItem] == null || !inventory[selectedItem].IsType(ItemType.Burnable))
+        {
+            ui.SetErrorText("This item won't burn.");
+            return;
+        }
+        if (!Physics.Raycast(fireSpawnCheck.transform.position, Vector3.down, out RaycastHit hit, 5))
+        {
+            ui.SetErrorText("I need to find flatter ground...");
+            return;
+        }
+        Debug.Log("fire: " + hit.point);
+        Debug.Log("fire: " + hit.collider.gameObject.name);
         // now we build the fire 
         StartCoroutine(PlaceFireCooldown());
         currentFire = Instantiate(fireplace, hit.point + new Vector3(0, 0.5f, 0), Quaternion.identity);
         currentFire.GetComponent<FireLifespan>().AddFuel(inventory[selectedItem].Stats.BurnableFuelValue);
-
+        dataCollector.firesBuilt++;
         DecrementItemCount();
     }
 
@@ -488,19 +525,36 @@ public class PlayerController : MonoBehaviour
     // Adds fuel to a fire you have selected
     public void AddFuelToSelectedFire()
     {
-        if (currentFire == null) return;
+        if (currentFire == null)
+        {
+            ui.SetErrorText("I'm not even at a fire, how am I doing this?");
+            return;
+        }
         Item item = inventory[selectedItem];
-        if (item == null || !item.IsType(ItemType.Burnable)) return;
+        if (item == null || !item.IsType(ItemType.Burnable))
+        {
+            ui.SetErrorText("This item won't burn well");
+            return;
+        }
         currentFire.GetComponent<FireLifespan>().AddFuel(item.Stats.BurnableFuelValue);
+        ui.SetErrorText("Added some fuel to the fire...");
         DecrementItemCount();
     }
 
     // Creates a torch if you have the wood/inventory space to do so
     public void CreateTorch()
     {
-        if (currentFire == null) return;
+        if (currentFire == null)
+        {
+            ui.SetErrorText("I'm not even at a fire, how am I doing this?");
+            return;
+        }
         Item item = inventory[selectedItem];
-        if (item == null || !item.IsType(ItemType.Burnable)) return;
+        if (item == null || !item.IsType(ItemType.Burnable))
+        {
+            ui.SetErrorText("This item won't burn well");
+            return;
+        }
         for (int i = 0; i < inventorySize; i++)
         {
             if (inventory[i] == null)
@@ -508,9 +562,38 @@ public class PlayerController : MonoBehaviour
                 Item theTorch = new Item(torchStats);
                 inventory[i] = theTorch;
                 DecrementItemCount();
-                break;
+                return;
             }
         }
+        ui.SetErrorText("My inventory doesn't have space for a torch...");
+    }
+    #endregion
+
+    #region The Finish Line Car
+    // Adds fuel to the car if you're holding it
+    public void AddGasToCar()
+    {
+        Item item = inventory[selectedItem];
+        if (item == null || item.Stats.Name != "Gas Can")
+        {
+            ui.SetErrorText("This item isn't car fuel...");
+            return;
+        }
+        car.GetComponent<TheCar>().AddAFuel();
+        DecrementItemCount();
+    }
+
+    // THE WIN CONDITION
+    public void ESCAPE()
+    {
+        int fuel = car.GetComponent<TheCar>().FuelCount();
+        if (fuel < 10)
+        {
+            ui.SetErrorText("I need more fuel to get out of here...");
+            return;
+        }
+        Debug.LogError("YOU WIN!!!");
+        ui.SetErrorText("You win! Cutscene will exist later though sorry");
     }
     #endregion
 

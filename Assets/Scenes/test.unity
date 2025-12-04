@@ -2160,6 +2160,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   character: {fileID: 1936893818}
+  controls: {fileID: 0}
+  input: {fileID: 0}
   sensitivity: 2
   smoothing: 1.5
 --- !u!81 &1490308806
@@ -2564,11 +2566,36 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   animal: {fileID: 2642775793694189529, guid: 5ae5acd6516d72541ae5955eb9394f28, type: 3}
+  wolf: {fileID: 0}
+  bigfoot: {fileID: 0}
   tree: {fileID: 7259184375205987391, guid: 555a1aee979cfa2449df55138fda84f8, type: 3}
+  bush: {fileID: 0}
+  shack: {fileID: 0}
+  maxSpawningDistance: 0
+  minSpawningDistance: 0
+  maxAnimalCount: 0
   animalSpawnTimeMax: 20
   animalSpawnTimeMin: 10
+  maxWolfCount: 0
+  wolfSpawnTimeMax: 0
+  wolfSpawnTimeMin: 0
+  bigfootRespawnTime: 0
+  bigfootRespawnModifier: 0
   treeCountMax: 1200
   treeCountMin: 800
+  bushCountMax: 0
+  bushCountMin: 0
+  shackSpawnChance: 0
+  itemSpawnWeights: 
+  itemsToSpawn: []
+  generation: {fileID: 0}
+  playerTransform: {fileID: 0}
+  terrainLayerMask:
+    serializedVersion: 2
+    m_Bits: 0
+  maxLoopCountDuringGeneration: 1000
+  maxLoopCountDuringSpawning: 500
+  dataCollector: {fileID: 0}
 --- !u!4 &1739891404
 Transform:
   m_ObjectHideFlags: 0
@@ -2602,7 +2629,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!114 &1858869562
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2825,15 +2852,15 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1936893813}
   serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 450.4, y: 9.120725, z: 519.46466}
+  m_LocalRotation: {x: -0.022162216, y: 0.9409534, z: 0.062828004, w: 0.3319159}
+  m_LocalPosition: {x: 460.1, y: 8.1, z: 495.6}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 1490308802}
   - {fileID: 1994832542}
   m_Father: {fileID: 0}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_LocalEulerAnglesHint: {x: -7.64, y: 141.14, z: 0}
 --- !u!54 &1936893819
 Rigidbody:
   m_ObjectHideFlags: 0
@@ -2874,9 +2901,24 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   moveSpeed: 5
+  sprintSpeed: 12
   jumpHeight: 8
-  health: 100
-  hunger: 100
+  maxHealth: 100
+  maxHunger: 100
+  invulnTime: 0.35
+  meleeWeapon: {fileID: 0}
+  useItemCooldown: 0
+  personalLight: {fileID: 0}
+  interactCheckPoint: {fileID: 0}
+  fireplace: {fileID: 0}
+  fireSpawnCheck: {fileID: 0}
+  torchStats: {fileID: 0}
+  car: {fileID: 0}
+  terrainSpawnCheckPoints: []
+  terrainLayer:
+    serializedVersion: 2
+    m_Bits: 0
+  dataCollector: {fileID: 0}
 --- !u!114 &1936893821
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2889,7 +2931,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9ae0ea15322a4e5408bdba7e60bc9824, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  fireplace: {fileID: 3393367493676954227, guid: 2141efeeab84a7e479a8036badb2d6f5, type: 3}
 --- !u!1 &1953309792
 GameObject:
   m_ObjectHideFlags: 0

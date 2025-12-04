@@ -8,7 +8,7 @@ public class AnimalWander : AnimalState
     {
         controller.timeSinceWanderCheck += Time.deltaTime;
         controller.movingTime -= Time.deltaTime;
-
+        controller.currentSpeed = controller.WalkSpeed;
         if (controller.timeSinceWanderCheck > controller.wanderTimeInterval)
         {
             controller.direction = new Vector2(Random.value - 0.5f, Random.value - 0.5f).normalized;

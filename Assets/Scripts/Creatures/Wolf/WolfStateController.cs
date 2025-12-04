@@ -104,6 +104,7 @@ public class WolfStateController : MonoBehaviour
         if (health <= 0)
         {
             Instantiate(drop, transform.position, Quaternion.identity);
+            GameObject.Find("DataCollect").GetComponent<SaveData>().killCount++;
             health = maxHealth;
             GameObject.Find("TerrainGenerator").GetComponent<RandomSpawner>().RepoolWolf(gameObject);
         }

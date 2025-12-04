@@ -161,7 +161,9 @@ MonoBehaviour:
   wanderTimeInterval: 8
   attackDistance: 15
   attackTimeInterval: 4.5
+  distanceToDespawn: 200
   drop: {fileID: 2378287371582904568, guid: b7ceeb9df7790c64c90a42ae456c2277, type: 3}
+  model: {fileID: 0}
   direction: {x: 0, y: 0, z: 0}
   currentSpeed: 0
   movingTime: 0
@@ -185,7 +187,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &2786814204094365366
 Transform:
   m_ObjectHideFlags: 0

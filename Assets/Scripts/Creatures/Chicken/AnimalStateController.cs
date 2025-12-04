@@ -10,6 +10,7 @@ public class AnimalStateController : MonoBehaviour
     [SerializeField] private float maxHealth = 20;
     private float health;
     [SerializeField] private float moveSpeed;
+    [SerializeField] private float runSpeed;
     [SerializeField] private float distanceToRunFromPlayer;
     [SerializeField] private float distanceToDespawn;
     public float wanderTimeInterval;
@@ -19,6 +20,8 @@ public class AnimalStateController : MonoBehaviour
     [SerializeField] private GameObject model;
 
     // Public getters for controller data
+    public float WalkSpeed { get => moveSpeed; }
+    public float RunSpeed { get => runSpeed; } 
     public float MinRunDistance { get => distanceToRunFromPlayer; }
     public Vector3 PlayerPosition { get => player.transform.position; }
     public float DespawnDistance { get => distanceToDespawn; }
@@ -30,6 +33,7 @@ public class AnimalStateController : MonoBehaviour
 
     // Data modifiable by states
     [HideInInspector] public Vector3 direction;
+    [HideInInspector] public float currentSpeed;
     [HideInInspector] public float movingTime;
     [HideInInspector] public float timeSinceWanderCheck;
 
@@ -83,7 +87,8 @@ public class AnimalStateController : MonoBehaviour
         {
             Instantiate(drop, transform.position, Quaternion.identity);
             health = maxHealth;
-            GameObject.Find("TerrainGenerator").GetComponent<RandomSpawner>().RepoolWolf(gameObject);
+            GameObject.Find("DataCollect").GetComponent<SaveData>().killCount++;
+            GameObject.Find("TerrainGenerator").GetComponent<RandomSpawner>().RepoolAnimal(gameObject);
         }
     }
 
@@ -95,11 +100,12 @@ public class AnimalStateController : MonoBehaviour
         //Vector2 targetVelocity = Vector3.forward * moveSpeed;
         //transform.Translate(targetVelocity);
         //rb.linearVelocity = transform.rotation * new Vector3(targetVelocity.x, rb.linearVelocity.y, targetVelocity.y);
-        rb.AddRelativeForce(moveSpeed * new Vector3(direction.x, 0, direction.z), ForceMode.Impulse);
+        //Debug.Log(direction);
+        rb.AddRelativeForce(currentSpeed * new Vector3(direction.x, 0, direction.y), ForceMode.Impulse);
         rb.linearVelocity = new Vector3(
-            Mathf.Clamp(rb.linearVelocity.x, -moveSpeed, moveSpeed),
+            Mathf.Clamp(rb.linearVelocity.x, -currentSpeed, currentSpeed),
             rb.linearVelocity.y,
-            Mathf.Clamp(rb.linearVelocity.z, -moveSpeed, moveSpeed)
+            Mathf.Clamp(rb.linearVelocity.z, -currentSpeed, currentSpeed)
         );
         transform.rotation = Quaternion.identity;
     }

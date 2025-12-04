@@ -6,9 +6,10 @@ public class AnimalFlee : AnimalState
 
     public override void Act()
     {
-        controller.direction = new Vector3(controller.transform.position.x - controller.PlayerPosition.x, controller.transform.position.z - controller.PlayerPosition.z, 0).normalized * 3;
+        controller.direction = new Vector3(controller.transform.position.x - controller.PlayerPosition.x, controller.transform.position.z - controller.PlayerPosition.z, 0).normalized;
         controller.FaceDirection();
         //controller.direction = Vector3.forward * 3;
+        controller.currentSpeed = controller.RunSpeed;
         controller.Move();
     }
 

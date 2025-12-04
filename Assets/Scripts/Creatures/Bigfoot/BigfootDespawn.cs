@@ -11,11 +11,14 @@ public class BigfootDespawn : BigfootState
 
     public override void CheckTransitions()
     {
-        throw new System.NotImplementedException();
+        if (controller.isActiveAndEnabled)
+        {
+            controller.SetState(new BigfootWander(controller));
+        }
     }
 
     public override void OnStateEnter()
     {
-        GameObject.Find("TerrainGenerator").GetComponent<RandomSpawner>().DeadBigfoot();
+        GameObject.Find("TerrainGenerator").GetComponent<RandomSpawner>().TeleportBigfoot();
     }
 }

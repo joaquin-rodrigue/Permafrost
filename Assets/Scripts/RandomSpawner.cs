@@ -13,6 +13,7 @@ public class RandomSpawner : MonoBehaviour
     [SerializeField] private GameObject wolf;
     [SerializeField] private GameObject bigfoot;
     [SerializeField] private GameObject tree;
+    [SerializeField] private GameObject bush;
     [SerializeField] private GameObject shack; 
     [SerializeField] private float maxSpawningDistance;
     [SerializeField] private float minSpawningDistance;
@@ -43,13 +44,17 @@ public class RandomSpawner : MonoBehaviour
     [SerializeField] private float bigfootRespawnTime;
     [SerializeField] private float bigfootRespawnModifier;
 
-    // The happy little trees
+    // The happy little trees + bushes
     private int treeCount;
-    [Header("Trees")]
+    private int bushCount;
+    [Header("Trees/Bushes")]
     [SerializeField] private int treeCountMax;
     [SerializeField] private int treeCountMin;
+    [SerializeField] private int bushCountMax;
+    [SerializeField] private int bushCountMin;
 
     // The shacks
+    private int itemSpawnWeightsTotal;
     [Header("Shacks")]
     [SerializeField] private float shackSpawnChance;
     [SerializeField] private int[] itemSpawnWeights;
@@ -62,12 +67,14 @@ public class RandomSpawner : MonoBehaviour
     [SerializeField] private LayerMask terrainLayerMask;
     [SerializeField] private int maxLoopCountDuringGeneration = 1000;
     [SerializeField] private int maxLoopCountDuringSpawning = 500;
+    [SerializeField] private SaveData dataCollector;
 
     #region Initial Object Spawning
     // Start method - generates the object pools mainly
     private void Start()
     {
         bigfootSpawnTime = bigfootRespawnTime;
+        
 
         Debug.Log("Generating object pools...");
         long time = DateTime.Now.Ticks;
@@ -140,7 +147,61 @@ public class RandomSpawner : MonoBehaviour
             }
         }
 
+        // --- BUSHES ---
+        bushCount = generation.random.Next(bushCountMin, bushCountMax);
+        loopCount = 0;
+        for (int i = 0; i < bushCount && loopCount < maxLoopCountDuringGeneration;)
+        {
+            foundValidSpawn = false;
+            while (!foundValidSpawn && loopCount < maxLoopCountDuringGeneration)
+            {
+                foundValidSpawn = Physics.Raycast(new Vector3(
+                    generation.random.Next((int)generation.MapBounds.min.x, (int)generation.MapBounds.max.x),
+                    120,
+                    generation.random.Next((int)generation.MapBounds.min.z, (int)generation.MapBounds.max.z)),
+                    Vector3.down,
+                    out hit,
+                    120,
+                    terrainLayerMask
+                );
+                loopCount++;
+            }
+
+            if (loopCount > maxLoopCountDuringGeneration)
+            {
+                Debug.Log("bush: no spawns left!");
+                break;
+            }
+
+            int countInArea = generation.random.Next(1, 3);
+
+            for (int j = 0; j < countInArea; j++)
+            {
+                RaycastHit chosenPoint = new();
+                // this is WILD
+                while (!Physics.Raycast(new Vector3(
+                    hit.point.x + generation.random.Next(-10, 10),
+                    hit.point.y + 20,
+                    hit.point.z + generation.random.Next(-10, 10)),
+                    Vector3.down,
+                    out chosenPoint,
+                    50,
+                    terrainLayerMask
+                ) && loopCount < maxLoopCountDuringGeneration) loopCount++;
+                Instantiate(bush, chosenPoint.point, Quaternion.identity);
+                i++;
+            }
+        }
+
         // --- SHACKS ---
+        // this kinda sucks but because random spawner doesn't get to start until
+        // after generation is done, this is now being done here...
+        itemSpawnWeightsTotal = 0;
+        foreach (int weight in itemSpawnWeights)
+        {
+            itemSpawnWeightsTotal += weight;
+        }
+
         double roll = generation.random.NextDouble();
         if (roll < shackSpawnChance)
         {
@@ -167,6 +228,19 @@ public class RandomSpawner : MonoBehaviour
             else
             {
                 Instantiate(shack, hit.point + Vector3.up, Quaternion.Euler(0, generation.random.Next(0, 360), 0));
+                int choice = generation.random.Next(itemSpawnWeightsTotal);
+                int itemIndex = -1, temp = 0;
+                //Debug.Log(choice);
+                for (int i = 0; i < itemSpawnWeights.Length; i++)
+                {
+                    if (itemSpawnWeights[i] + temp > choice)
+                    {
+                        itemIndex = i;
+                        break;
+                    }
+                    temp += itemSpawnWeights[i];
+                }
+                Instantiate(itemsToSpawn[itemIndex], hit.point + new Vector3(0, 10, 0), Quaternion.identity);
             }
         }
     }
@@ -239,16 +313,16 @@ public class RandomSpawner : MonoBehaviour
         RaycastHit hit = FindValidSpawnPoint();
         
         GameObject possible = animalPool.Pop();
-        Debug.Log(possible);
+        //Debug.Log(possible);
         if (possible != null)
         {
             possible.SetActive(true);
-            Debug.Log(hit.point);
+            //Debug.Log(hit.point);
             possible.transform.SetPositionAndRotation(hit.point + new Vector3(0, possible.transform.localScale.y * 1.5f, 0), Quaternion.identity);
             possible.GetComponent<Rigidbody>().linearVelocity = Vector3.zero;
         }
         animalSpawnTime = UnityEngine.Random.Range(animalSpawnTimeMin, animalSpawnTimeMax);
-        Debug.Log(animalSpawnTime);
+        //Debug.Log(animalSpawnTime);
     }
 
     // Spawns a wolf somewhere at random
@@ -302,6 +376,14 @@ public class RandomSpawner : MonoBehaviour
     public void DeadBigfoot()
     {
         bigfootAlive = false;
+    }
+
+    public void TeleportBigfoot()
+    {
+        RaycastHit hit = FindValidSpawnPoint();
+
+        GameObject theFoot = GameObject.Find("Bigfoot (Clone)");
+        theFoot.transform.SetPositionAndRotation(hit.point + new Vector3(0, theFoot.transform.localScale.y * 1.5f, 0), Quaternion.identity);
     }
     #endregion
 }

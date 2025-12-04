@@ -37,6 +37,7 @@ public class BigfootWander : BigfootState
         {
             controller.SetState(new BigfootStalk(controller));
         }
+        
     }
 
     public override void OnStateEnter()

@@ -21,17 +21,20 @@ public class RandomTerrainGenerator : MonoBehaviour
     [SerializeField] private int terrainCellSize;
     [SerializeField] private RandomSpawner objectSpawner;
     [SerializeField] private TerrainLayer mat;
+    [SerializeField] private Material mat2;
+
 
     // Starts the generation and stuff
     void Start()
     {
         terrains = new List<Vector2>();
-        //Debug.LogWarning(mat);
+        Debug.LogWarning(mat.diffuseTexture);
         if (seed == 0)
         {
             seed = UnityEngine.Random.Range(int.MinValue, int.MaxValue);
         }
         
+        // Make some noise
         GenerateNoise(seed);
         long time = DateTime.Now.Ticks;
         try
@@ -49,10 +52,19 @@ public class RandomTerrainGenerator : MonoBehaviour
         long done = DateTime.Now.Ticks;
         Debug.Log("Generated in " + ((done - time) / 1000f) + " ms");
 
+        // Place starter objects
         GameObject player = GameObject.Find("Player");
         RaycastHit chosenPoint = new();
         Physics.Raycast(player.transform.position + new Vector3(0, 100, 0), Vector3.down, out chosenPoint);
         player.transform.position = chosenPoint.point + Vector3.up;
+
+        GameObject car = GameObject.Find("Car");
+        Physics.Raycast(car.transform.position + new Vector3(0, 100, 0), Vector3.down, out chosenPoint);
+        car.transform.position = chosenPoint.point + Vector3.up * 2;
+
+        GameObject axe = GameObject.Find("Axe");
+        Physics.Raycast(axe.transform.position + new Vector3(0, 100, 0), Vector3.down, out chosenPoint);
+        axe.transform.position = chosenPoint.point + Vector3.up;
     }
 
     public void GenerateNewChunk(Vector2 pos)
@@ -111,8 +123,13 @@ public class RandomTerrainGenerator : MonoBehaviour
         TerrainLayer[] layers = new TerrainLayer[1];
         layers[0] = mat;
         data.terrainLayers = layers;
+        //Debug.Log(data.terrainLayers[0]);
         Terrain newBlock = Terrain.CreateTerrainGameObject(data).GetComponent<Terrain>();
         newBlock.transform.position = new Vector3(pos.x, 0, pos.y);
+        //Debug.Log(newBlock.terrainData.terrainLayers[0]);
+        //Debug.Log(newBlock.terrainData.terrainLayers[0].diffuseTexture);
+        newBlock.materialTemplate = mat2;
+        Debug.Log(newBlock.materialTemplate);
         newBlock.gameObject.layer = LayerMask.NameToLayer("Terrain");
         newBlock.GetComponent<TerrainCollider>().providesContacts = true;
         newBlock.terrainData.heightmapResolution = terrainCellSize + 1;
@@ -134,6 +151,21 @@ public class RandomTerrainGenerator : MonoBehaviour
             {
                 heights[i, j] = 0.15f * Perlin(cell.x + (j / (float) terrainCellSize), cell.y + (i / (float) terrainCellSize))
                     + 0.075f * Perlin(cell.x * 2 + (j / (float) terrainCellSize * 2f), cell.y * 2 + (i / (float) terrainCellSize * 2f));
+            }
+        }
+
+        // The middle road
+        if (cell.x == 31)
+        {
+            for (int i = 0; i < terrainCellSize + 1; i++)
+            {
+                float left = heights[i, terrainCellSize / 2 - 4];
+                float right = heights[i, terrainCellSize / 2 + 4];
+                float roadHeight = (left + right) / 2 - 0.0015f;
+                for (int j = terrainCellSize / 2 - 4; j < terrainCellSize / 2 + 4; j++)
+                {
+                    heights[i, j] = roadHeight;
+                }
             }
         }
 

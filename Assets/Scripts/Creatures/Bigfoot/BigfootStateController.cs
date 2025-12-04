@@ -15,6 +15,7 @@ public class BigfootStateController : MonoBehaviour
     [SerializeField] private float walkSpeed;
     [SerializeField] private float runSpeed;
     [SerializeField] private float distanceToDetectPlayer;
+    [SerializeField] private float distanceToDespawn;
     [SerializeField] private float behindPlayerAngleTolerance;
     [SerializeField] private float staringAngleTolerance;
     [SerializeField] private float stalkingDistance;
@@ -51,6 +52,7 @@ public class BigfootStateController : MonoBehaviour
     public Vector3 PlayerRotation { get => player.transform.rotation.eulerAngles; }
     public Vector3 ModelRotation { get => model.transform.rotation.eulerAngles; }
     public bool Attacking { get; private set; }
+    public float DespawnDistance { get => distanceToDespawn; }
 
     // Other object refs
     private BigfootState currentState;
@@ -124,6 +126,7 @@ public class BigfootStateController : MonoBehaviour
         if (health <= 0)
         {
             Instantiate(drop, transform.position, Quaternion.identity);
+            GameObject.Find("DataCollect").GetComponent<SaveData>().killCount++;
             health = maxHealth;
             GameObject.Find("TerrainGenerator").GetComponent<RandomSpawner>().DeadBigfoot();
         }
