@@ -10,20 +10,20 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 124095c94aad8114ca62a749fa860730, type: 3}
-  m_Name: Axe
+  m_Name: Handgun
   m_EditorClassIdentifier: 
-  Type: 6
-  Name: Axe
+  Type: 2
+  Name: Pistol
   MaxStackSize: 1
-  WeaponDurability: 300
-  WeaponDamage: 8
-  WeaponHungerLoss: 0.012
-  WeaponAttack: 1
-  GunBulletType: {fileID: 0}
-  GunMagazineSize: 0
+  WeaponDurability: 800
+  WeaponDamage: 14
+  WeaponHungerLoss: 0
+  WeaponAttack: 2
+  GunBulletType: {fileID: 11400000, guid: 1730afbaac2111148a58108d4ce1a52d, type: 2}
+  GunMagazineSize: 12
   FoodHungerRestore: 0
   BurnableFuelValue: 0
-  BreakingStrength: 10
+  BreakingStrength: 0
   LightDurability: 0
   LightIntensity: 0
   LightRange: 0

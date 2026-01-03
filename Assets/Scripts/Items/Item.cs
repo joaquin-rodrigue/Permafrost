@@ -7,11 +7,17 @@ using UnityEngine;
 /// </summary>
 public enum ItemType
 {
-    Food =     0b00000001,
-    Weapon =   0b00000010,
-    TreeChop = 0b00000100,
-    Burnable = 0b00001000,
-    Light =    0b00010000,
+    Food =     0b0000000000000001,
+    Weapon =   0b0000000000000010,
+    TreeChop = 0b0000000000000100,
+    Burnable = 0b0000000000001000,
+    Light =    0b0000000000010000,
+    Heal =     0b0000000000100000,
+}
+
+public enum WeaponType
+{
+    None, Melee, Gun
 }
 
 /// <summary>
@@ -23,12 +29,14 @@ public class Item
     private readonly ItemAttributes attributes;
     private int stackCount;
     private int currentDurability;
+    private int ammoCount;
 
     public Item(ItemAttributes attributest)
     {
         attributes = attributest;
         stackCount = 1;
         currentDurability = attributest.WeaponDurability > 0 ? attributest.WeaponDurability : attributest.LightDurability;
+        ammoCount = attributest.GunMagazineSize;
     }
 
     public ItemAttributes Stats { get { return attributes; } }
@@ -67,5 +75,15 @@ public class Item
     public void SetDurability(int durability)
     {
         currentDurability = durability;
+    }
+
+    public int GetCurrentAmmo()
+    {
+        return ammoCount;
+    }
+
+    public void DecrementAmmo()
+    {
+        ammoCount--;
     }
 }

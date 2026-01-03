@@ -157,34 +157,36 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   maxHealth: 200
-  damage: 16
-  stalkSpeed: 1
-  walkSpeed: 0.7
-  runSpeed: 3.5
-  distanceToDetectPlayer: 60
+  sneakSpeed: 0.95
+  moveSpeed: 0.8
+  runSpeed: 2.5
   distanceToDespawn: 180
+  distanceToDetectPlayer: 60
+  damage: 16
+  damageDealingActive: 0
+  wanderTimeInterval: 8
+  pooledCreature: 0
+  stalkingDistance: 35
+  attackDistance: 15
+  attackInterval: 2
+  drop: {fileID: 0}
+  model: {fileID: 8965821967679049604}
+  Direction: {x: 0, y: 0, z: 0}
+  CurrentSpeed: 0
+  TimeSinceAction: 0
+  MovingTime: 0
+  Aggression: 0
   behindPlayerAngleTolerance: 80
   staringAngleTolerance: 8
-  stalkingDistance: 35
   maxStalkingDistance: 70
-  attackDistance: 15
-  wanderTimeInterval: 8
-  attackTimeInterval: 0
   attackTimeLimit: 10
   attackStateCooldown: 45
   onHitAggroBoost: 20
   lightCheckInterval: 40
   lightAggroIncrease: 0.1
-  drop: {fileID: 0}
-  model: {fileID: 8965821967679049604}
-  direction: {x: 0, y: 0, z: 0}
   TargetLightSource: {fileID: 0}
-  currentSpeed: 0
-  movingTime: 0
-  timeSinceWanderCheck: 0
-  aggression: 0
-  timeSinceLightCheck: 0
-  timeSinceAttackLeave: 0
+  TimeSinceLightCheck: 0
+  TimeSinceAttackLeave: 0
 --- !u!54 &8573501379953301714
 Rigidbody:
   m_ObjectHideFlags: 0
@@ -212,6 +214,59 @@ Rigidbody:
   m_Interpolate: 0
   m_Constraints: 80
   m_CollisionDetection: 0
+--- !u!1 &2866574787799642947
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 7481040566284470077}
+  - component: {fileID: 8812402316689438685}
+  m_Layer: 0
+  m_Name: Hitbox
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &7481040566284470077
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2866574787799642947}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 1}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 4947229327035390914}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!65 &8812402316689438685
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2866574787799642947}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 1
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Size: {x: 1, y: 1, z: 1}
+  m_Center: {x: 0, y: 0, z: 0}
 --- !u!1 &8965821967679049604
 GameObject:
   m_ObjectHideFlags: 0
@@ -244,6 +299,7 @@ Transform:
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 6352535866213483798}
+  - {fileID: 7481040566284470077}
   m_Father: {fileID: 4311290317448659733}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!33 &2296058164185062316

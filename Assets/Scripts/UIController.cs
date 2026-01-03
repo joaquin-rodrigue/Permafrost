@@ -11,7 +11,7 @@ using UnityEngine.SceneManagement;
 /// </summary>
 enum ActiveMenu
 {
-    None, PauseMenu, FireplaceMenu, CarMenu
+    None, PauseMenu, FireplaceMenu, CarMenu, DeathScreen
 }
 
 /// <summary>
@@ -29,7 +29,9 @@ public class UIController : MonoBehaviour
     // Player
     [Header("Player UI")]
     [SerializeField] private Image healthImage;
+    [SerializeField] private GameObject healthBar;
     [SerializeField] private Image hungerImage;
+    [SerializeField] private GameObject hungerBar;
     [SerializeField] private TMP_Text[] inventorySlots;
     [SerializeField] private GameObject inventoryUI;
     [SerializeField] private GameObject[] buttonPrompts;
@@ -53,6 +55,9 @@ public class UIController : MonoBehaviour
     [SerializeField] private GameObject carMenu;
     [SerializeField] private TMP_Text fuelCansText;
 
+    [Header("Death UI")]
+    [SerializeField] private GameObject deathScreen;
+
     [Header("Debug items")]
     [SerializeField] private bool enableFpsMeter;
     [SerializeField] private TMP_Text fpsMeter;
@@ -68,15 +73,17 @@ public class UIController : MonoBehaviour
 
     #region Player UI Updates
     // Just changes the hunger image
-    public void UpdateHungerUI(float hunger)
+    public void UpdateHungerUI(float hunger, float maxHunger)
     {
-        hungerImage.rectTransform.localScale = new Vector3(hunger / 100, hunger / 100, 1);
+        if (hunger < 0) hunger = 0;
+        hungerImage.rectTransform.localScale = new Vector3(hunger / maxHunger, 1, 1);
     }
 
     // Just changes the health image
-    public void UpdateHealthUI(float health)
+    public void UpdateHealthUI(float health, float maxHealth)
     {
-        healthImage.rectTransform.localScale = new Vector3(health / 100, health / 100, 1);
+        if (health < 0) health = 0;
+        healthImage.rectTransform.localScale = new Vector3(health / maxHealth, 1, 1);
     }
 
     // Updates all the inventory sections
@@ -98,7 +105,11 @@ public class UIController : MonoBehaviour
     }
 
     // Updates the button prompts based on the player's currently held item
-    public void UpdateButtonPrompts(Item current)
+    // TODO: this code has some problems; the whole two list thing *would* be a map in a
+    // good world but unfortunately this is Unity and dictionaries aren't serializable and
+    // won't show up in the editor! yippee!! but anyways this code still needs work and
+    // it sucks
+    public void UpdateButtonPrompts(Item current, Transform playerPos)
     {
         foreach (GameObject prompt in buttonPrompts)
         {
@@ -108,6 +119,7 @@ public class UIController : MonoBehaviour
         if (current == null) return;
 
         int activePrompts = 0;
+        // --- weapon items ---
         if (current.IsType(ItemType.Weapon))
         {
             foreach (GameObject prompt in buttonPrompts)
@@ -131,6 +143,7 @@ public class UIController : MonoBehaviour
                 }
             }
         }
+        // --- flammable items ---
         if (current.IsType(ItemType.Burnable))
         {
             foreach (GameObject prompt in buttonPrompts) 
@@ -154,6 +167,7 @@ public class UIController : MonoBehaviour
                 }
             }
         }
+        // --- food items --- 
         if (current.IsType(ItemType.Food))
         {
             foreach (GameObject prompt in buttonPrompts)
@@ -177,6 +191,7 @@ public class UIController : MonoBehaviour
                 }
             }
         }
+        // --- tree cutter items --- 
         if (current.IsType(ItemType.TreeChop))
         {
             foreach (GameObject prompt in buttonPrompts)
@@ -200,20 +215,70 @@ public class UIController : MonoBehaviour
                 }
             }
         }
+        // --- healing items ---
+        if (current.IsType(ItemType.Heal))
+        {
+            foreach (GameObject prompt in buttonPrompts)
+            {
+                if (!prompt.activeSelf)
+                {
+                    activePrompts++;
+                    prompt.SetActive(true);
+                    prompt.GetComponentInChildren<TMP_Text>().text = "Heal";
+                    int index = -1;
+                    for (int i = 0; i < keyBindingsForPrompts.Length; i++)
+                    {
+                        if (keyBindingsForPrompts[i] == "RightClick")
+                        {
+                            index = i; break;
+                        }
+                    }
+                    prompt.GetComponentInChildren<Image>().sprite = buttonsForPrompts[index];
+                    break;
+                }
+            }
+        }
+
+        RaycastHit hit;
+        // --- interact --- 
+        if (Physics.Raycast(playerPos.position, playerPos.forward, out hit, 5))
+        {
+            if (hit.collider.TryGetComponent<FireLifespan>(out _) || hit.collider.TryGetComponent<TheCar>(out _)) {
+                foreach (GameObject prompt in buttonPrompts)
+                {
+                    if (!prompt.activeSelf)
+                    {
+                        activePrompts++;
+                        prompt.SetActive(true);
+                        prompt.GetComponentInChildren<TMP_Text>().text = "Interact";
+                        int index = -1;
+                        for (int i = 0; i < keyBindingsForPrompts.Length; i++)
+                        {
+                            if (keyBindingsForPrompts[i] == "E")
+                            {
+                                index = i; break;
+                            }
+                        }
+                        prompt.GetComponentInChildren<Image>().sprite = buttonsForPrompts[index];
+                        break;
+                    }
+                }
+            }
+        }
 
         // todo: move the buttom prompt object so the prompts are centered
         buttonPromptOrigin.anchoredPosition = new Vector3(300 - (75 * activePrompts), 125, 0);
     }
     #endregion
 
-    #region Pause Menu
+    #region Pause + Death Menu
     // Activate the pause menu UI
     public void ActivatePauseMenu()
     {
         if (playerUIActive)
         {
-            healthImage.gameObject.SetActive(false);
-            hungerImage.gameObject.SetActive(false);
+            healthBar.SetActive(false);
+            hungerBar.SetActive(false);
             inventoryUI.SetActive(false);
             buttonPromptOrigin.gameObject.SetActive(false);
         }
@@ -234,14 +299,24 @@ public class UIController : MonoBehaviour
     {
         if (!playerUIActive)
         {
-            healthImage.gameObject.SetActive(true);
-            hungerImage.gameObject.SetActive(true);
+            healthBar.SetActive(true);
+            hungerBar.SetActive(true);
             inventoryUI.SetActive(true);
             buttonPromptOrigin.gameObject.SetActive(true);
         }
         playerUIActive = true;
         pauseMenu.SetActive(false);
         activeMenu = ActiveMenu.None;
+    }
+
+    // Activates the death screen
+    public void ActivateDeathMenu()
+    {
+        activeMenu = ActiveMenu.DeathScreen;
+        fireplaceMenu.SetActive(false);
+        carMenu.SetActive(false);
+        pauseMenu.SetActive(false);
+        deathScreen.SetActive(true);
     }
     #endregion
 

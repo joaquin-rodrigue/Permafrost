@@ -10,22 +10,19 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 124095c94aad8114ca62a749fa860730, type: 3}
-  m_Name: Axe
+  m_Name: Medkit
   m_EditorClassIdentifier: 
-  Type: 6
-  Name: Axe
+  Type: 32
+  Name: Medkit
   MaxStackSize: 1
-  WeaponDurability: 300
-  WeaponDamage: 8
-  WeaponHungerLoss: 0.012
-  WeaponAttack: 1
-  GunBulletType: {fileID: 0}
-  GunMagazineSize: 0
+  WeaponDurability: 0
+  WeaponDamage: 0
+  WeaponHungerLoss: 0
   FoodHungerRestore: 0
   BurnableFuelValue: 0
-  BreakingStrength: 10
+  BreakingStrength: 0
   LightDurability: 0
   LightIntensity: 0
   LightRange: 0
   LightColor: {r: 0, g: 0, b: 0, a: 0}
-  HealthRestore: 0
+  HealthRestore: 50

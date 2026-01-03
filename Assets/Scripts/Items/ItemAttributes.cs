@@ -12,6 +12,9 @@ public class ItemAttributes : ScriptableObject
     public int WeaponDurability;
     public int WeaponDamage;
     public float WeaponHungerLoss;
+    public WeaponType WeaponAttack;
+    public ItemAttributes GunBulletType;
+    public int GunMagazineSize;
     public int FoodHungerRestore;
     public int BurnableFuelValue;
     public int BreakingStrength;
@@ -19,4 +22,5 @@ public class ItemAttributes : ScriptableObject
     public int LightIntensity;
     public int LightRange;
     public Color LightColor;
+    public int HealthRestore;
 }

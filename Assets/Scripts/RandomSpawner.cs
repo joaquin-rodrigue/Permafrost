@@ -40,6 +40,7 @@ public class RandomSpawner : MonoBehaviour
     private float bigfootSpawnTime;
     private float bigfootSpawnTimer;
     private bool bigfootAlive;
+    private GameObject activeBigfoot;
     [Header("Bigfoot")]
     [SerializeField] private float bigfootRespawnTime;
     [SerializeField] private float bigfootRespawnModifier;
@@ -352,8 +353,8 @@ public class RandomSpawner : MonoBehaviour
 
         RaycastHit hit = FindValidSpawnPoint();
 
-        GameObject theFoot = Instantiate(bigfoot);
-        theFoot.transform.SetPositionAndRotation(hit.point + new Vector3(0, theFoot.transform.localScale.y * 1.5f, 0), Quaternion.identity);
+        activeBigfoot = Instantiate(bigfoot);
+        activeBigfoot.transform.SetPositionAndRotation(hit.point + new Vector3(0, activeBigfoot.transform.localScale.y * 1.5f, 0), Quaternion.identity);
         bigfootSpawnTime *= bigfootRespawnModifier;
     }
     #endregion
@@ -381,9 +382,7 @@ public class RandomSpawner : MonoBehaviour
     public void TeleportBigfoot()
     {
         RaycastHit hit = FindValidSpawnPoint();
-
-        GameObject theFoot = GameObject.Find("Bigfoot (Clone)");
-        theFoot.transform.SetPositionAndRotation(hit.point + new Vector3(0, theFoot.transform.localScale.y * 1.5f, 0), Quaternion.identity);
+        activeBigfoot.transform.SetPositionAndRotation(hit.point + new Vector3(0, activeBigfoot.transform.localScale.y * 1.5f, 0), Quaternion.identity);
     }
     #endregion
 }

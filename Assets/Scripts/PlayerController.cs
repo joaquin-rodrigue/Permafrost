@@ -34,6 +34,10 @@ public class PlayerController : MonoBehaviour
     [SerializeField] private float maxHealth = 100;
     [SerializeField] private float maxHunger = 100;
     [SerializeField] private float invulnTime = 0.35f;
+    [SerializeField] private float darknessDamageThreshold = 0.25f;
+    [SerializeField] private float starveDamage = 0.05f;
+    [SerializeField] private float passiveHungerLoss = 0.003f;
+    [SerializeField] private float sprintHungerLoss = 0.009f;
     private float health;
     private float hunger;
     private bool currentlyInvuln;
@@ -47,6 +51,7 @@ public class PlayerController : MonoBehaviour
     private bool attacking;
     private bool canAttack = true;
     private bool usingItem;
+    private bool dropItemInput;
     private bool nextItemInput;
     private bool previousItemInput;
     private bool sprinting;
@@ -73,7 +78,7 @@ public class PlayerController : MonoBehaviour
     public bool IsPaused { get; private set; }
 
     // Other item related
-    [Header("Item References")]
+    [Header("Interactions References")]
     [SerializeField] private GameObject meleeWeapon;
     [SerializeField] private float useItemCooldown;
     [SerializeField] private GameObject personalLight;
@@ -108,6 +113,9 @@ public class PlayerController : MonoBehaviour
     // Saving data
     [SerializeField] private SaveData dataCollector;
 
+    [Header("Item Drop Library")]
+    [SerializeField] private ItemLibrary itemLibrary;
+
     #region Start + Update(s)
     // Getting references to necessary objects + initializing the inventory system
     void Start()
@@ -139,6 +147,7 @@ public class PlayerController : MonoBehaviour
         crouching = playerInput.actions["Crouch"].IsInProgress();
         attacking = playerInput.actions["Attack"].WasPressedThisFrame() || attacking;
         usingItem = playerInput.actions["UseItem"].WasPressedThisFrame() || usingItem;
+        dropItemInput = playerInput.actions["DropItem"].WasPressedThisFrame() || dropItemInput;
         nextItemInput = playerInput.actions["Next"].WasPressedThisFrame() || nextItemInput;
         previousItemInput = playerInput.actions["Previous"].WasPressedThisFrame() || previousItemInput;
         createFireButton = playerInput.actions["Fire"].WasPressedThisFrame() || createFireButton;
@@ -192,22 +201,28 @@ public class PlayerController : MonoBehaviour
         // Attack
         if (attacking && canAttack)
         {
-            StartCoroutine(MeleeAttack());
+            DetermineAttack();
         }
         attacking = false;
 
         // The darkness consumes you
-        if (daylight.LightValue < 0.25f && !isInLight)
+        if (daylight.LightValue < darknessDamageThreshold && !isInLight)
         {
-            Hurt(0.25f - daylight.LightValue);
+            Hurt(darknessDamageThreshold - daylight.LightValue);
         }
 
         // The hunger also consumes you
-        hunger -= 0.003f + (sprinting ? 0.009f : 0);
+        hunger -= passiveHungerLoss + (sprinting ? sprintHungerLoss : 0);
         if (hunger <= 0)
         {
             hunger = 0;
-            Hurt(0.05f);
+            Hurt(starveDamage);
+        }
+        // Passive regeneration at high hunger
+        if (hunger >= maxHunger * 0.9 && health < maxHealth)
+        {
+            health += 0.01f;
+            hunger -= 0.02f;
         }
 
         // inventory management
@@ -229,7 +244,13 @@ public class PlayerController : MonoBehaviour
         }
         nextItemInput = false;
         previousItemInput = false;
-        // todo: drop
+       
+        // Todo: drop (probably works now)
+        if (dropItemInput && canUseItem)
+        {
+            DropItem(false);
+        }
+        dropItemInput = false;
 
         // Use/Update item - all the code is done in UseItem and UpdateItem
         UpdateItem();
@@ -237,6 +258,7 @@ public class PlayerController : MonoBehaviour
         {
             UseItem();
         }
+        usingItem = false;
 
         // Interact with something
         if (interacting)
@@ -254,8 +276,8 @@ public class PlayerController : MonoBehaviour
 
         // update the UI
         ui.UpdateInventoryUI(inventory, selectedItem);
-        ui.UpdateButtonPrompts(inventory[selectedItem]);
-        ui.UpdateHungerUI(hunger);
+        ui.UpdateButtonPrompts(inventory[selectedItem], interactCheckPoint.transform);
+        ui.UpdateHungerUI(hunger, maxHunger);
 
         // Check terrain updating
         terrainUpdateCheckTimer += chunksGenerating ? 0 : Time.fixedDeltaTime;
@@ -311,31 +333,65 @@ public class PlayerController : MonoBehaviour
     #endregion
 
     #region Weapon/Hurt Behavior
+    // Determines which attack to do, or if to do an attack at all
+    private void DetermineAttack()
+    {
+        if (inventory[selectedItem] == null) return;
+        if (!inventory[selectedItem].IsType(ItemType.Weapon)) return;
+
+        canAttack = false;
+        CurrentDamage = inventory[selectedItem].Stats.WeaponDamage;
+        hunger -= inventory[selectedItem].Stats.WeaponHungerLoss;
+
+        switch (inventory[selectedItem].Stats.WeaponAttack)
+        {
+            case WeaponType.None:
+                Debug.LogWarning("Weapon has no attack type!");
+                canAttack = true;
+                break;
+            case WeaponType.Melee:
+                StartCoroutine(MeleeAttack());
+                break;
+            case WeaponType.Gun:
+                StartCoroutine(GunAttack());
+                break;
+        }
+    }
+
     // The melee attack coroutine
     // TODO: replace this with a call for melee attack animation on the given weapon equipped
     // well some of the code will remain here but the animation wont
     private IEnumerator MeleeAttack()
     {
-        canAttack = false;
         meleeWeapon.SetActive(true);
-        if (inventory[selectedItem] != null && inventory[selectedItem].IsType(ItemType.Weapon))
-        {
-            CurrentDamage = inventory[selectedItem].Stats.WeaponDamage;
-            hunger -= inventory[selectedItem].Stats.WeaponHungerLoss;
-        }
-        else
-        {
-            CurrentDamage = 1;
-        }
-
         yield return new WaitForSeconds(0.25f);
         meleeWeapon.SetActive(false);
         yield return new WaitForSeconds(0.25f);
         canAttack = true;
     }
 
+    private IEnumerator GunAttack()
+    {
+        RaycastHit hit;
+        if (!Physics.Raycast(interactCheckPoint.position, interactCheckPoint.forward, out hit, 100))
+        {
+            canAttack = true;
+            yield break;
+        }
+        if (inventory[selectedItem].GetCurrentAmmo() <= 0)
+        {
+            canAttack = true;
+            yield break;
+        }
+
+        GameObject target = hit.collider.gameObject;
+        // todo: create a creaturestatemachine base class so we can just try getting that component here
+        yield return new WaitForEndOfFrame();
+        canAttack = true;
+    }
+
     // Simple way for the objects you hit to communicate back that the weapon's durability needs to drop
-    public void MeleeHit()
+    public void OnHitSuccess()
     {
         inventory[selectedItem].DecrementDurability();
         if (inventory[selectedItem].GetDurability() <= 0)
@@ -351,7 +407,15 @@ public class PlayerController : MonoBehaviour
         health -= damage;
         StartCoroutine(Invulnerability());
         //Debug.Log(health);
-        ui.UpdateHealthUI(health);
+        ui.UpdateHealthUI(health, maxHealth);
+        if (health <= 0)
+        {
+            // tod: death
+            IsPaused = true;
+            Time.timeScale = 0f;
+            Cursor.lockState = CursorLockMode.Confined;
+            ui.ActivateDeathMenu();
+        }
     }
 
     // Invulnerability timer between hits
@@ -368,7 +432,7 @@ public class PlayerController : MonoBehaviour
     private void PickUpItem(GameObject item)
     {
         ItemAttributes theThingWeWant = item.GetComponent<Pickupable>().Item;
-
+        
         for (int i = 0; i < inventorySize; i++)
         {
             if (inventory[i] == null )
@@ -416,7 +480,7 @@ public class PlayerController : MonoBehaviour
     private void UseItem()
     {
         if (inventory[selectedItem] == null) return;
-
+        //Debug.Log("using item!");
         StartCoroutine(ItemCooldown());
         Item item = inventory[selectedItem];
         ItemAttributes stats = inventory[selectedItem].Stats;
@@ -430,9 +494,9 @@ public class PlayerController : MonoBehaviour
         if (item.IsType(ItemType.Food))
         {
             hunger += stats.FoodHungerRestore;
-            if (hunger > 100)
+            if (hunger > maxHunger)
             {
-                hunger = 100;
+                hunger = maxHunger;
             }
             DecrementItemCount();
         }
@@ -440,6 +504,16 @@ public class PlayerController : MonoBehaviour
         if (item.IsType(ItemType.TreeChop))
         {
             // todo: do we need to tie usage here if tree chop is part of attack animations
+        }
+        // HEALS
+        if (item.IsType(ItemType.Heal))
+        {
+            health += stats.HealthRestore;
+            if (health > maxHealth)
+            {
+                health = maxHealth;
+            }
+            DecrementItemCount();
         }
     }
 
@@ -459,6 +533,19 @@ public class PlayerController : MonoBehaviour
         {
             inventory[selectedItem] = null;
         }
+    }
+
+    private void DropItem(bool stack)
+    {
+        if (inventory[selectedItem] == null) return;
+
+        StartCoroutine(ItemCooldown());
+        do
+        {
+            itemLibrary.CreatePhysicalItem(inventory[selectedItem].Stats.Name, transform);
+            DecrementItemCount();
+        } 
+        while (stack && inventory[selectedItem].GetCount() > 0);
     }
     #endregion
 
@@ -536,8 +623,9 @@ public class PlayerController : MonoBehaviour
             ui.SetErrorText("This item won't burn well");
             return;
         }
-        currentFire.GetComponent<FireLifespan>().AddFuel(item.Stats.BurnableFuelValue);
-        ui.SetErrorText("Added some fuel to the fire...");
+        FireLifespan lifespan = currentFire.GetComponent<FireLifespan>();
+        lifespan.AddFuel(item.Stats.BurnableFuelValue);
+        ui.OpenFireplaceUI(lifespan);
         DecrementItemCount();
     }
 
@@ -579,7 +667,9 @@ public class PlayerController : MonoBehaviour
             ui.SetErrorText("This item isn't car fuel...");
             return;
         }
-        car.GetComponent<TheCar>().AddAFuel();
+        TheCar carstats = car.GetComponent<TheCar>();
+        carstats.AddAFuel();
+        ui.OpenCarUI(carstats);
         DecrementItemCount();
     }
 

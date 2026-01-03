@@ -152,23 +152,25 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   maxHealth: 35
-  damage: 12
+  sneakSpeed: 0.7
   moveSpeed: 0.5
   runSpeed: 2.5
-  stalkSpeed: 1
-  distanceToDetectPlayer: 60
-  stalkingDistance: 65
-  wanderTimeInterval: 8
-  attackDistance: 15
-  attackTimeInterval: 4.5
   distanceToDespawn: 200
+  distanceToDetectPlayer: 60
+  damage: 12
+  damageDealingActive: 0
+  wanderTimeInterval: 8
+  pooledCreature: 1
+  stalkingDistance: 65
+  attackDistance: 15
+  attackInterval: 4
   drop: {fileID: 2378287371582904568, guid: b7ceeb9df7790c64c90a42ae456c2277, type: 3}
   model: {fileID: 0}
-  direction: {x: 0, y: 0, z: 0}
-  currentSpeed: 0
-  movingTime: 0
-  timeSinceWanderCheck: 0
-  aggression: 0
+  Direction: {x: 0, y: 0, z: 0}
+  CurrentSpeed: 0
+  TimeSinceAction: 0
+  MovingTime: 0
+  Aggression: 0
 --- !u!1 &2936054831460934331
 GameObject:
   m_ObjectHideFlags: 0
