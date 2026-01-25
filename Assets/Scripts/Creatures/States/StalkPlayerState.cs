@@ -16,11 +16,15 @@ public class StalkPlayerState : State
         float distance = Vector3.Distance(controller.transform.position, controller.PlayerPosition);
         if (distance <= controller.AttackDistance)
         {
-            // TODO: switch
+            System.Type type = controller.GetType();
+            if (type == typeof(WolfStateController))
+            {
+                controller.SetState(new WolfAttackState((WolfStateController) controller));
+            }
         }
         if (distance >= controller.MaxStalkingDistance)
         {
-            // TODO: switch
+            controller.SetState(new WanderState(controller));
         }
     }
 

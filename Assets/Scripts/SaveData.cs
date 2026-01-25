@@ -1,4 +1,5 @@
 using System.IO;
+using System.Threading.Tasks;
 using UnityEngine;
 
 public class SaveData : MonoBehaviour
@@ -38,6 +39,7 @@ public class SaveData : MonoBehaviour
 
     public void CreateDataToSave()
     {
+        Debug.Log("saving");
         dataFile = new DataProcessing(timeSurvived, killCount, itemsGathered, firesBuilt);
         //Debug.Log(timeSurvived + " " + killCount + " " + itemsGathered + " " + firesBuilt);
         Save();
@@ -46,8 +48,6 @@ public class SaveData : MonoBehaviour
     private void Save()
     {
         string json = JsonUtility.ToJson(dataFile);
-        StreamWriter writer = new StreamWriter(path);
-        writer.Write(json);
-        writer.Close();
+        File.WriteAllTextAsync(path, json);
     }
 }

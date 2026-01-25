@@ -27,6 +27,15 @@ public class WanderState : State
         if (distance <= controller.DetectPlayerDistance)
         {
             // switch based on controller type
+            System.Type type = controller.GetType();
+            if (type == typeof(AnimalStateController))
+            {
+                controller.SetState(new RetreatState(controller));
+            }
+            else if (type == typeof(WolfStateController))
+            {
+                controller.SetState(new StalkPlayerState(controller));
+            }
         }
         if (distance >= controller.DespawnDistance)
         {

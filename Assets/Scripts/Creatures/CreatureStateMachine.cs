@@ -1,3 +1,4 @@
+using System.Collections;
 using UnityEngine;
 
 /// <summary>
@@ -18,7 +19,6 @@ public class CreatureStateMachine : MonoBehaviour
     [SerializeField] protected float damage;
     [SerializeField] protected bool damageDealingActive;
     [SerializeField] protected float wanderTimeInterval;
-    [SerializeField] protected bool pooledCreature;
     [SerializeField] protected float stalkingDistance;
     [SerializeField] protected float attackDistance;
     [SerializeField] protected float attackInterval;
@@ -27,6 +27,7 @@ public class CreatureStateMachine : MonoBehaviour
     [Header("Object References")]
     [SerializeField] private GameObject drop;
     [SerializeField] protected GameObject model;
+    [SerializeField] protected GameObject hitbox;
 
     // Other object references
     protected GameObject player;
@@ -49,8 +50,6 @@ public class CreatureStateMachine : MonoBehaviour
     public float AttackDistance { get => attackDistance; }
     public float AttackInterval { get => attackInterval; }
     public bool Attacking { get; protected set; }
-
-    public bool IsPooled { get => pooledCreature; }
 
     // Data modifiable by states
     [HideInInspector] public Vector3 Direction;
@@ -118,6 +117,16 @@ public class CreatureStateMachine : MonoBehaviour
             GameObject.Find("DataCollect").GetComponent<SaveData>().killCount++;
             RandomSpawner spawner = GameObject.Find("TerrainGenerator").GetComponent<RandomSpawner>();
             // todo: repooling but better/respawning but better
+            System.Type type = GetType();
+
+            if (type == typeof(BigfootStateController))
+            {
+                spawner.DeadBigfoot();
+            }
+            else
+            {
+                SetState(new DespawnState(this));
+            }
         }
     }
 
@@ -165,6 +174,14 @@ public class CreatureStateMachine : MonoBehaviour
     {
         Vector3 lunge = new Vector3(Direction.x, 2, Direction.z) * CurrentSpeed;
         rb.AddRelativeForce(lunge, ForceMode.Impulse);
+        StartCoroutine(HitboxCycle());
+    }
+
+    protected IEnumerator HitboxCycle()
+    {
+        hitbox.SetActive(true);
+        yield return new WaitForSeconds(0.5f);
+        hitbox.SetActive(false);
     }
     #endregion
 }

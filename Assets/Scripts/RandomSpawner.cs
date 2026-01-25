@@ -143,7 +143,8 @@ public class RandomSpawner : MonoBehaviour
                     50,
                     terrainLayerMask
                 ) && loopCount < maxLoopCountDuringGeneration) loopCount++;
-                Instantiate(tree, chosenPoint.point, Quaternion.identity);
+                GameObject current = Instantiate(tree, chosenPoint.point, Quaternion.Euler(0, generation.random.Next(0, 360), 0));
+                current.transform.localScale = new Vector3(UnityEngine.Random.value * 0.5f + 0.95f, UnityEngine.Random.value * 0.5f + 0.95f, UnityEngine.Random.value * 0.5f + 0.95f);
                 i++;
             }
         }
@@ -189,7 +190,8 @@ public class RandomSpawner : MonoBehaviour
                     50,
                     terrainLayerMask
                 ) && loopCount < maxLoopCountDuringGeneration) loopCount++;
-                Instantiate(bush, chosenPoint.point, Quaternion.identity);
+                GameObject current = Instantiate(bush, chosenPoint.point, Quaternion.Euler(0, generation.random.Next(0, 360), 0));
+                current.transform.localScale = new Vector3(UnityEngine.Random.value * 0.1f + 0.95f, UnityEngine.Random.value * 0.1f + 0.95f, UnityEngine.Random.value * 0.1f + 0.95f);
                 i++;
             }
         }
@@ -377,6 +379,7 @@ public class RandomSpawner : MonoBehaviour
     public void DeadBigfoot()
     {
         bigfootAlive = false;
+        Destroy(activeBigfoot);
     }
 
     public void TeleportBigfoot()

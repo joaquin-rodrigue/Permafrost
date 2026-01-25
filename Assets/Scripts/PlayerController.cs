@@ -1,9 +1,5 @@
 using System.Collections;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using TMPro;
-using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
@@ -80,6 +76,8 @@ public class PlayerController : MonoBehaviour
     // Other item related
     [Header("Interactions References")]
     [SerializeField] private GameObject meleeWeapon;
+    [SerializeField] private GameObject itemViewModel;
+    private Animator itemViewModelAnimation;
     [SerializeField] private float useItemCooldown;
     [SerializeField] private GameObject personalLight;
     [SerializeField] private Transform interactCheckPoint;
@@ -135,7 +133,9 @@ public class PlayerController : MonoBehaviour
         Cursor.lockState = CursorLockMode.Locked;
         inventorySize = 5;
         inventory = new Item[inventorySize];
+        ChangeViewModel(); // set the view model to turn off by default
         //InvokeRepeating(nameof(TerrainUpdateCheck), 1, 1);
+        itemViewModelAnimation = itemViewModel.GetComponent<Animator>();
     }
 
     // Input handling happens here for more input accuracy
@@ -233,6 +233,7 @@ public class PlayerController : MonoBehaviour
             {
                 selectedItem = 0;
             }
+            ChangeViewModel();
         }
         else if (previousItemInput)
         {
@@ -241,6 +242,7 @@ public class PlayerController : MonoBehaviour
             {
                 selectedItem = inventorySize - 1;
             }
+            ChangeViewModel();
         }
         nextItemInput = false;
         previousItemInput = false;
@@ -359,17 +361,20 @@ public class PlayerController : MonoBehaviour
     }
 
     // The melee attack coroutine
-    // TODO: replace this with a call for melee attack animation on the given weapon equipped
-    // well some of the code will remain here but the animation wont
     private IEnumerator MeleeAttack()
     {
+        itemViewModelAnimation.SetBool("swinging", true);
+        yield return new WaitForSeconds(0.25f);
         meleeWeapon.SetActive(true);
         yield return new WaitForSeconds(0.25f);
+        itemViewModelAnimation.SetBool("swinging", false);
         meleeWeapon.SetActive(false);
-        yield return new WaitForSeconds(0.25f);
+        yield return new WaitForSeconds(0.5f);
         canAttack = true;
     }
 
+    // The ranged attack coroutine
+    // Not yet implemented due to no weapons using ranged attacks
     private IEnumerator GunAttack()
     {
         RaycastHit hit;
@@ -435,11 +440,12 @@ public class PlayerController : MonoBehaviour
         
         for (int i = 0; i < inventorySize; i++)
         {
-            if (inventory[i] == null )
+            if (inventory[i] == null)
             {
                 inventory[i] = new Item(theThingWeWant);
                 Destroy(item);
                 dataCollector.itemsGathered++;
+                ChangeViewModel();
                 break;
             }
             else if (inventory[i].Stats.Name.Equals(theThingWeWant.Name)
@@ -473,6 +479,7 @@ public class PlayerController : MonoBehaviour
             theLight.intensity = stats.LightIntensity;
             theLight.range = stats.LightRange;
             item.DecrementDurability();
+            ChangeViewModel();
         }
     }
 
@@ -532,9 +539,12 @@ public class PlayerController : MonoBehaviour
         if (inventory[selectedItem].GetCount() <= 0)
         {
             inventory[selectedItem] = null;
+            ChangeViewModel();
         }
     }
 
+    // Drops the currently held item
+    // Unused option to drop the entire item stack instead
     private void DropItem(bool stack)
     {
         if (inventory[selectedItem] == null) return;
@@ -546,6 +556,30 @@ public class PlayerController : MonoBehaviour
             DecrementItemCount();
         } 
         while (stack && inventory[selectedItem].GetCount() > 0);
+        ChangeViewModel();
+    }
+
+    // Changes the view model seen on the screen
+    private void ChangeViewModel()
+    {
+        if (inventory[selectedItem] == null)
+        {
+            itemViewModel.SetActive(false);
+            return;
+        }
+
+        string name = inventory[selectedItem].Stats.Name;
+        Mesh mesh = itemLibrary.GetItemModel(name);
+        Material mat = itemLibrary.GetItemMaterial(name);
+        if (mesh == null || mat == null)
+        {
+            itemViewModel.SetActive(false);
+            return;
+        }
+
+        itemViewModel.GetComponent<MeshRenderer>().material = mat;
+        itemViewModel.GetComponent<MeshFilter>().mesh = mesh;
+        itemViewModel.SetActive(true);
     }
     #endregion
 
@@ -688,6 +722,7 @@ public class PlayerController : MonoBehaviour
     #endregion
 
     #region Breaking Objects Behavior
+    // Checks what kind of breakable object this is and whether we are holding the right item to break it with
     private void CheckBreakable(Breakable obj)
     {
         if (inventory[selectedItem] == null || obj.GetDurability() <= 0) return;
@@ -743,6 +778,7 @@ public class PlayerController : MonoBehaviour
         }
     }
 
+    // Another check to detect if the player is in a light source
     private void OnTriggerStay(Collider other)
     {
         if (other.CompareTag("Light Source"))
@@ -751,6 +787,7 @@ public class PlayerController : MonoBehaviour
         }
     }
 
+    // Check for when the player leaves a light source
     private void OnTriggerExit(Collider other)
     {
         if (other.CompareTag("Light Source"))

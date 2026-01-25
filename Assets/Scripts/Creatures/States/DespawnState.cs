@@ -30,6 +30,20 @@ public class DespawnState : State
 
     public override void OnStateEnter()
     {
-        
+        Type type = controller.GetType();
+        RandomSpawner spawner = GameObject.FindGameObjectWithTag("GameController").GetComponent<RandomSpawner>();
+
+        if (type == typeof(AnimalStateController))
+        {
+            spawner.RepoolAnimal(controller.gameObject);
+        }
+        else if (type == typeof(WolfStateController))
+        {
+            spawner.RepoolWolf(controller.gameObject);
+        }
+        else if (type == typeof(BigfootStateController))
+        {
+            spawner.TeleportBigfoot();
+        }
     }
 }

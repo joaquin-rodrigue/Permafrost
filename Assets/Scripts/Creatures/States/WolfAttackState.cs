@@ -26,15 +26,15 @@ public class WolfAttackState : State
         {
             controller.Move();
         }
-        else
+        /*else
         {
             controller.DontMove();
-        }
+        }*/
         if (controller.Aggression > controller.AttackInterval)
         {
             target = controller.PlayerPosition;
-            controller.Direction = (target - controller.MyPosition).normalized;
-
+            controller.Direction = (target - controller.MyPosition);
+            Debug.Log(controller.Direction);
             controller.Attack();
             controller.Aggression = 0;
         }

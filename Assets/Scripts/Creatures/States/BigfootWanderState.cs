@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.InputSystem.XR;
 
 public class BigfootWanderState : State
 {
@@ -52,7 +53,9 @@ public class BigfootWanderState : State
 
     public override void OnStateEnter()
     {
-        controller.CurrentSpeed = controller.WalkSpeed;
+        BigfootStateController bcontroller = (BigfootStateController) controller;
+        bcontroller.CurrentSpeed = controller.WalkSpeed;
+        bcontroller.TargetLightSource = controller.transform;
     }
 
     public override void OnStateExit()

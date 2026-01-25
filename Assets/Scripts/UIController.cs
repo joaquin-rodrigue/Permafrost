@@ -267,7 +267,7 @@ public class UIController : MonoBehaviour
         }
 
         // todo: move the buttom prompt object so the prompts are centered
-        buttonPromptOrigin.anchoredPosition = new Vector3(300 - (75 * activePrompts), 125, 0);
+        buttonPromptOrigin.anchoredPosition = new Vector3(375 - (75 * activePrompts * 1.25f), 160, 0);
     }
     #endregion
 
