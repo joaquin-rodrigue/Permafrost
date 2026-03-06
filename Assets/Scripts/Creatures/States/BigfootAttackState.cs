@@ -10,6 +10,7 @@ public class BigfootAttackState : State
         float distance = Vector3.Distance(bcontroller.MyPosition, bcontroller.PlayerPosition);
 
         bcontroller.Direction = (bcontroller.PlayerPosition - bcontroller.MyPosition).normalized;
+        bcontroller.FaceDirection();
         bcontroller.Aggression -= Time.deltaTime;
 
         if (!bcontroller.Attacking)

@@ -7,6 +7,8 @@ public class ItemLibrary : MonoBehaviour
 
     [SerializeField] private Mesh[] itemModels;
     [SerializeField] private Material[] itemMaterials;
+    [SerializeField] private Vector3[] itemViewModelScales;
+    [SerializeField] private Quaternion[] itemViewModelRotations;
 
     private int SearchItemList(string itemName)
     {
@@ -40,9 +42,7 @@ public class ItemLibrary : MonoBehaviour
             Debug.LogWarning("Tried getting mesh for item that doesn't exist!");
             return null;
         }
-        // this feels scary
-        Mesh mesh = itemModels[index];
-        return mesh;
+        return itemModels[index];
     }
 
     public Material GetItemMaterial(string itemName)
@@ -53,7 +53,28 @@ public class ItemLibrary : MonoBehaviour
             Debug.LogWarning("Tried getting material for item that doesn't exist!");
             return null;
         }
-        Material mat = itemMaterials[index];
-        return mat;
+        return itemMaterials[index];
+    }
+
+    public Vector3 GetItemScale(string itemName)
+    {
+        int index = SearchItemList(itemName);
+        if (index == -1)
+        {
+            Debug.LogWarning("Tried getting scale for item that doesn't exist!");
+            return Vector3.one;
+        }
+        return itemViewModelScales[index];
+    }
+
+    public Quaternion GetItemRotation(string itemName)
+    {
+        int index = SearchItemList(itemName);
+        if (index == -1)
+        {
+            Debug.LogWarning("Tried getting rotation for item that doesn't exist!");
+            return Quaternion.identity;
+        }
+        return itemViewModelRotations[index];
     }
 }

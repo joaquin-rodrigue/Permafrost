@@ -291,6 +291,7 @@ public class UIController : MonoBehaviour
 
     public void ReturnToMenu()
     {
+        Time.timeScale = 1f; // reset because death scene
         SceneManager.LoadScene(0);
     }
 

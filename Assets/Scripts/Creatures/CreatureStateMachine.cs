@@ -4,6 +4,7 @@ using UnityEngine;
 /// <summary>
 /// The base state machine class for all creatures in the game.
 /// </summary>
+[RequireComponent(typeof(Rigidbody), typeof(AudioSource))]
 public class CreatureStateMachine : MonoBehaviour
 {
     #region Fields, Properties, etc.
@@ -28,11 +29,13 @@ public class CreatureStateMachine : MonoBehaviour
     [SerializeField] private GameObject drop;
     [SerializeField] protected GameObject model;
     [SerializeField] protected GameObject hitbox;
+    [SerializeField] protected AudioClip[] soundEffects;
 
     // Other object references
     protected GameObject player;
     protected State currentState;
     protected Rigidbody rb;
+    protected AudioSource sfx;
 
     // Public getters for controller data
     public float WalkSpeed { get => moveSpeed; }
@@ -66,6 +69,7 @@ public class CreatureStateMachine : MonoBehaviour
         health = maxHealth;
         player = GameObject.Find("Player");
         rb = GetComponent<Rigidbody>();
+        sfx = GetComponent<AudioSource>();
     }
 
     private void Update()
@@ -98,6 +102,17 @@ public class CreatureStateMachine : MonoBehaviour
         currentState?.OnStateExit();
         currentState = state;
         currentState?.OnStateEnter();
+    }
+
+    /// <summary>
+    /// Plays a random audio clip in the specified range.
+    /// </summary>
+    /// <param name="min">The minimum index for the audio clip to play.</param>
+    /// <param name="max">The maximum index for the audio clip to play.</param>
+    public virtual void PlayAudio(int min, int max)
+    {
+        sfx.clip = soundEffects[Random.Range(min, max)];
+        sfx.Play();
     }
 
     /// <summary>
@@ -180,7 +195,7 @@ public class CreatureStateMachine : MonoBehaviour
     protected IEnumerator HitboxCycle()
     {
         hitbox.SetActive(true);
-        yield return new WaitForSeconds(0.5f);
+        yield return new WaitForSeconds(1f);
         hitbox.SetActive(false);
     }
     #endregion

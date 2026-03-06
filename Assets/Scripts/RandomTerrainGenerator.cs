@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using Unity.VisualScripting;
 using UnityEngine;
 
 /// <summary>
@@ -9,7 +10,7 @@ using UnityEngine;
 /// </summary>
 public class RandomTerrainGenerator : MonoBehaviour
 {
-    private List<Vector2> terrains;
+    private List<GameObject> terrains;
     private byte[] permutation;
     private byte[] p;
 
@@ -19,6 +20,8 @@ public class RandomTerrainGenerator : MonoBehaviour
     [Tooltip("Leave as '0' for random")]
     [SerializeField] private int seed;
     [SerializeField] private int terrainCellSize;
+    [Tooltip("I recommend a value around 3 times the terrain cell size")]
+    [SerializeField] private int unloadDistance;
     [SerializeField] private RandomSpawner objectSpawner;
     [SerializeField] private TerrainLayer mat;
     [SerializeField] private Material mat2;
@@ -27,7 +30,7 @@ public class RandomTerrainGenerator : MonoBehaviour
     // Starts the generation and stuff
     void Start()
     {
-        terrains = new List<Vector2>();
+        terrains = new List<GameObject>();
         Debug.LogWarning(mat.diffuseTexture);
         if (seed == 0)
         {
@@ -67,20 +70,41 @@ public class RandomTerrainGenerator : MonoBehaviour
         axe.transform.position = chosenPoint.point + Vector3.up;
     }
 
+    // Function to generate a chunk/reload chunks that have previously been generated
     public void GenerateNewChunk(Vector2 pos)
     {
         Vector2 cell = pos / terrainCellSize;
-        Vector2 temp2 = new Vector2(Mathf.Floor(cell.x), Mathf.Floor(cell.y)) * terrainCellSize;
+        Vector3 temp2 = new Vector3(Mathf.Floor(cell.x), 0, Mathf.Floor(cell.y)) * terrainCellSize;
         
-        foreach (Vector2 existing in terrains)
+        foreach (GameObject existing in terrains)
         {
-            if (existing.Equals(temp2))
+            // using vector3.distance as floating point bullshit protection
+            //Debug.Log("temp: " + temp2);
+            //Debug.Log("existing: " + existing.transform.position);
+            if (Vector3.Distance(existing.transform.position, temp2) < terrainCellSize / 2)
             {
+                existing.SetActive(true);
+                CheckUnloadChunks();
                 return;
             }
         }
-        Debug.Log("working until generate" + temp2);
-        GenerateNewBlock(temp2);
+        //Debug.Log("working until generate" + temp2);
+        GenerateNewBlock(terrainCellSize * new Vector2(Mathf.Floor(cell.x), Mathf.Floor(cell.y)));
+        CheckUnloadChunks();
+    }
+
+    // Checks chunks for deactivating
+    private void CheckUnloadChunks()
+    {
+        //Debug.Log("checking unload chunks...");
+        GameObject player = GameObject.Find("Player");
+        foreach (GameObject existing in terrains)
+        {
+            if (existing.activeSelf && Vector3.Distance(player.transform.position, existing.transform.position) > unloadDistance)
+            {
+                existing.SetActive(false);
+            }
+        }
     }
 
     #region Grid Blocks
@@ -118,6 +142,8 @@ public class RandomTerrainGenerator : MonoBehaviour
     /// <param name="pos">The position in Unity world coordinates to place the terrain. This should be a multiple of terrainCellSize.</param>
     private void GenerateNewBlock(Vector2 pos)
     {
+        // todo: clean up this code is silly and kinda uggo
+        // todo 2: snow falling particle effect?
         long time = DateTime.Now.Ticks;
         TerrainData data = new();
         TerrainLayer[] layers = new TerrainLayer[1];
@@ -129,7 +155,7 @@ public class RandomTerrainGenerator : MonoBehaviour
         //Debug.Log(newBlock.terrainData.terrainLayers[0]);
         //Debug.Log(newBlock.terrainData.terrainLayers[0].diffuseTexture);
         newBlock.materialTemplate = mat2;
-        Debug.Log(newBlock.materialTemplate);
+        //Debug.Log(newBlock.materialTemplate);
         newBlock.gameObject.layer = LayerMask.NameToLayer("Terrain");
         newBlock.GetComponent<TerrainCollider>().providesContacts = true;
         newBlock.terrainData.heightmapResolution = terrainCellSize + 1;
@@ -140,7 +166,8 @@ public class RandomTerrainGenerator : MonoBehaviour
         MapBounds = new(new Vector3(pos.x + terrainCellSize / 2, 0, pos.y + terrainCellSize / 2), new Vector3(terrainCellSize, 0, terrainCellSize));
         //Debug.Log(MapBounds);
         //Debug.Log(pos);
-        terrains.Add(pos);
+        terrains.Add(newBlock.gameObject);
+        //Debug.Log("terrains: " + terrains.Count);
 
         Vector2 cell = pos / terrainCellSize + new Vector2(31, 31);
         //Debug.Log(cell);
@@ -173,9 +200,9 @@ public class RandomTerrainGenerator : MonoBehaviour
         //newBlock.terrainData.SetBaseMapDirty();
         //Debug.LogWarning(newBlock.terrainData.terrainLayers[0]);
         FindAndConnectNeighbors(newBlock);
-        objectSpawner.Generate();
+        objectSpawner.Generate(newBlock.gameObject);
         long done = DateTime.Now.Ticks;
-        Debug.Log("Generated block " + cell + " in " + ((done - time) / 1000f) + " ms");
+        //Debug.Log("Generated block " + cell + " in " + ((done - time) / 1000f) + " ms");
 
     }
     #endregion

@@ -1,7 +1,9 @@
+using System.Collections.Generic;
 using System.Collections;
 using TMPro;
 using UnityEngine;
 using UnityEngine.InputSystem;
+using Unity.VisualScripting;
 
 /// <summary>
 ///     The controller for the player. Includes code for handling all player controls, player health
@@ -31,12 +33,14 @@ public class PlayerController : MonoBehaviour
     [SerializeField] private float maxHunger = 100;
     [SerializeField] private float invulnTime = 0.35f;
     [SerializeField] private float darknessDamageThreshold = 0.25f;
+    [SerializeField] private float darknessTimeMultiplier = 0.1f;
     [SerializeField] private float starveDamage = 0.05f;
     [SerializeField] private float passiveHungerLoss = 0.003f;
     [SerializeField] private float sprintHungerLoss = 0.009f;
     private float health;
     private float hunger;
     private bool currentlyInvuln;
+    private float darknessTimer;
 
     // Input variables
     private Vector2 moveInput;
@@ -64,20 +68,28 @@ public class PlayerController : MonoBehaviour
     // Inventory
     private Item[] inventory;
     private int selectedItem = 0;
-    private int inventorySize;
+    private readonly int inventorySize = 9;
     private bool canUseItem = true;
 
     // UI
     private UIController ui;
-    private TMP_Text[] inventoryItemTexts;
     public bool InteractUIActive { get; private set; }
     public bool IsPaused { get; private set; }
+
+    // Audio stuff
+    [Header("Audio Effects")]
+    [SerializeField] private AudioClip[] meleeSwingAudio;
+    [SerializeField] private float meleeSwingVolume;
+    [SerializeField] private AudioClip[] eatSounds;
+    [SerializeField] private float eatVolume;
 
     // Other item related
     [Header("Interactions References")]
     [SerializeField] private GameObject meleeWeapon;
     [SerializeField] private GameObject itemViewModel;
     private Animator itemViewModelAnimation;
+    private AudioSource itemViewModelAudio;
+    [SerializeField] private ParticleSystem itemParticles;
     [SerializeField] private float useItemCooldown;
     [SerializeField] private GameObject personalLight;
     [SerializeField] private Transform interactCheckPoint;
@@ -89,6 +101,7 @@ public class PlayerController : MonoBehaviour
     [SerializeField] private GameObject fireplace;
     [SerializeField] private GameObject fireSpawnCheck;
     [SerializeField] private ItemAttributes torchStats;
+    [SerializeField] private LayerMask fireBuildableLayers;
 
     private GameObject currentFire;
     private bool createFireButton;
@@ -118,9 +131,11 @@ public class PlayerController : MonoBehaviour
     // Getting references to necessary objects + initializing the inventory system
     void Start()
     {
+        // health and hungy
         health = maxHealth;
         hunger = maxHunger;
 
+        // general component things
         playerInput = GetComponent<PlayerInput>();
         rb = GetComponent<Rigidbody>();
         collision = GetComponent<Collider>();
@@ -128,14 +143,16 @@ public class PlayerController : MonoBehaviour
         ui = GameObject.Find("Canvas").GetComponent<UIController>();
         generator = GameObject.Find("TerrainGenerator").GetComponent<RandomTerrainGenerator>();
 
-        // The getcomponentsinchildren call here is gone, instead it must be set in the editor
+        // set some stuff
         meleeWeapon.SetActive(false);
         Cursor.lockState = CursorLockMode.Locked;
-        inventorySize = 5;
         inventory = new Item[inventorySize];
+
+        // item view model stuff
         ChangeViewModel(); // set the view model to turn off by default
-        //InvokeRepeating(nameof(TerrainUpdateCheck), 1, 1);
         itemViewModelAnimation = itemViewModel.GetComponent<Animator>();
+        itemViewModelAudio = itemViewModel.GetComponent<AudioSource>();
+        itemParticles.Stop();
     }
 
     // Input handling happens here for more input accuracy
@@ -188,12 +205,16 @@ public class PlayerController : MonoBehaviour
         float targetSpeed = sprinting ? sprintSpeed : moveSpeed;
         Vector2 targetVelocity = moveInput * targetSpeed;
         rb.linearVelocity = transform.rotation * new Vector3(targetVelocity.x, rb.linearVelocity.y, targetVelocity.y);
+        //Debug.Log("vel: " + rb.linearVelocity);
+        //Debug.Log("jump vars: " + jumpInput + " " + canJump);
 
         // Jump 
         if (jumpInput && canJump)
         {
             Vector3 jump = new Vector3(0, jumpHeight, 0);
+            rb.linearVelocity = new Vector3(rb.linearVelocity.x, 0, rb.linearVelocity.z);
             rb.AddRelativeForce(jump, ForceMode.Impulse);
+            //Debug.Log("jumpin");
             canJump = false;
         }
         jumpInput = false;
@@ -208,7 +229,12 @@ public class PlayerController : MonoBehaviour
         // The darkness consumes you
         if (daylight.LightValue < darknessDamageThreshold && !isInLight)
         {
-            Hurt(darknessDamageThreshold - daylight.LightValue);
+            darknessTimer += Time.deltaTime;
+            Hurt(darknessDamageThreshold - daylight.LightValue + darknessTimer * darknessTimeMultiplier);
+        }
+        else
+        {
+            darknessTimer = 0;
         }
 
         // The hunger also consumes you
@@ -364,10 +390,16 @@ public class PlayerController : MonoBehaviour
     private IEnumerator MeleeAttack()
     {
         itemViewModelAnimation.SetBool("swinging", true);
-        yield return new WaitForSeconds(0.25f);
+        yield return new WaitForSeconds(0.12f);
+        itemViewModelAudio.clip = meleeSwingAudio[Random.Range(0, meleeSwingAudio.Length)];
+        itemViewModelAudio.volume = meleeSwingVolume;
+        itemViewModelAudio.Play();
+        yield return new WaitForSeconds(0.13f);
         meleeWeapon.SetActive(true);
+        itemParticles.Play();
         yield return new WaitForSeconds(0.25f);
         itemViewModelAnimation.SetBool("swinging", false);
+        itemParticles.Stop();
         meleeWeapon.SetActive(false);
         yield return new WaitForSeconds(0.5f);
         canAttack = true;
@@ -411,7 +443,7 @@ public class PlayerController : MonoBehaviour
         if (currentlyInvuln) return;
         health -= damage;
         StartCoroutine(Invulnerability());
-        //Debug.Log(health);
+        Debug.Log(damage);
         ui.UpdateHealthUI(health, maxHealth);
         if (health <= 0)
         {
@@ -505,6 +537,9 @@ public class PlayerController : MonoBehaviour
             {
                 hunger = maxHunger;
             }
+            itemViewModelAudio.clip = eatSounds[Random.Range(0, eatSounds.Length)];
+            itemViewModelAudio.volume = eatVolume;
+            itemViewModelAudio.Play();
             DecrementItemCount();
         }
         // TREE CHOPS
@@ -571,7 +606,9 @@ public class PlayerController : MonoBehaviour
         string name = inventory[selectedItem].Stats.Name;
         Mesh mesh = itemLibrary.GetItemModel(name);
         Material mat = itemLibrary.GetItemMaterial(name);
-        if (mesh == null || mat == null)
+        Vector3 scale = itemLibrary.GetItemScale(name);
+        Quaternion rot = itemLibrary.GetItemRotation(name);
+        if (mesh == null || mat == null) // scale and rotation won't be null coming out of the item lib
         {
             itemViewModel.SetActive(false);
             return;
@@ -579,7 +616,10 @@ public class PlayerController : MonoBehaviour
 
         itemViewModel.GetComponent<MeshRenderer>().material = mat;
         itemViewModel.GetComponent<MeshFilter>().mesh = mesh;
+        itemViewModel.transform.localScale = scale;
+        itemViewModel.transform.rotation = rot;
         itemViewModel.SetActive(true);
+        itemParticles.Stop();
     }
     #endregion
 
@@ -620,7 +660,7 @@ public class PlayerController : MonoBehaviour
             ui.SetErrorText("This item won't burn.");
             return;
         }
-        if (!Physics.Raycast(fireSpawnCheck.transform.position, Vector3.down, out RaycastHit hit, 5))
+        if (!Physics.Raycast(fireSpawnCheck.transform.position, Vector3.down, out RaycastHit hit, 5, fireBuildableLayers))
         {
             ui.SetErrorText("I need to find flatter ground...");
             return;

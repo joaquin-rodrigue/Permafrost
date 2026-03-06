@@ -14,7 +14,8 @@ public class RandomSpawner : MonoBehaviour
     [SerializeField] private GameObject bigfoot;
     [SerializeField] private GameObject tree;
     [SerializeField] private GameObject bush;
-    [SerializeField] private GameObject shack; 
+    [SerializeField] private GameObject shack;
+    [SerializeField] private GameObject snowfall;
     [SerializeField] private float maxSpawningDistance;
     [SerializeField] private float minSpawningDistance;
 
@@ -96,7 +97,7 @@ public class RandomSpawner : MonoBehaviour
     }
 
     // Runs the code to spawn one-time objects
-    public void Generate()
+    public void Generate(GameObject terrainParent)
     {
         treeCount = generation.random.Next(treeCountMin, treeCountMax);
         bool foundValidSpawn = false;
@@ -143,7 +144,8 @@ public class RandomSpawner : MonoBehaviour
                     50,
                     terrainLayerMask
                 ) && loopCount < maxLoopCountDuringGeneration) loopCount++;
-                GameObject current = Instantiate(tree, chosenPoint.point, Quaternion.Euler(0, generation.random.Next(0, 360), 0));
+                GameObject current = Instantiate(tree, terrainParent.transform);
+                current.transform.SetPositionAndRotation(chosenPoint.point, Quaternion.Euler(0, generation.random.Next(0, 360), 0));
                 current.transform.localScale = new Vector3(UnityEngine.Random.value * 0.5f + 0.95f, UnityEngine.Random.value * 0.5f + 0.95f, UnityEngine.Random.value * 0.5f + 0.95f);
                 i++;
             }
@@ -190,7 +192,8 @@ public class RandomSpawner : MonoBehaviour
                     50,
                     terrainLayerMask
                 ) && loopCount < maxLoopCountDuringGeneration) loopCount++;
-                GameObject current = Instantiate(bush, chosenPoint.point, Quaternion.Euler(0, generation.random.Next(0, 360), 0));
+                GameObject current = Instantiate(bush, terrainParent.transform);
+                current.transform.SetPositionAndRotation(chosenPoint.point, Quaternion.Euler(0, generation.random.Next(0, 360), 0));
                 current.transform.localScale = new Vector3(UnityEngine.Random.value * 0.1f + 0.95f, UnityEngine.Random.value * 0.1f + 0.95f, UnityEngine.Random.value * 0.1f + 0.95f);
                 i++;
             }
@@ -199,6 +202,7 @@ public class RandomSpawner : MonoBehaviour
         // --- SHACKS ---
         // this kinda sucks but because random spawner doesn't get to start until
         // after generation is done, this is now being done here...
+        // realizing this loop is done even time a chunk loads, wasting some time
         itemSpawnWeightsTotal = 0;
         foreach (int weight in itemSpawnWeights)
         {
@@ -230,7 +234,9 @@ public class RandomSpawner : MonoBehaviour
             }
             else
             {
-                Instantiate(shack, hit.point + Vector3.up, Quaternion.Euler(0, generation.random.Next(0, 360), 0));
+                // now we actually spawn the shack and drop the items in
+                GameObject newShack = Instantiate(shack, terrainParent.transform);
+                newShack.transform.SetPositionAndRotation(hit.point + Vector3.up, Quaternion.Euler(0, generation.random.Next(0, 360), 0));
                 int choice = generation.random.Next(itemSpawnWeightsTotal);
                 int itemIndex = -1, temp = 0;
                 //Debug.Log(choice);
@@ -243,9 +249,14 @@ public class RandomSpawner : MonoBehaviour
                     }
                     temp += itemSpawnWeights[i];
                 }
-                Instantiate(itemsToSpawn[itemIndex], hit.point + new Vector3(0, 10, 0), Quaternion.identity);
+                GameObject item = Instantiate(itemsToSpawn[itemIndex], newShack.transform);
+                item.transform.SetPositionAndRotation(hit.point + new Vector3(0, 3, 0), Quaternion.identity);
             }
         }
+
+        // --- ATTACH SNOWFALL ---
+        GameObject snowfallParticles = Instantiate(snowfall, terrainParent.transform);
+        snowfallParticles.transform.localPosition += new Vector3(0, 100, 0);
     }
     #endregion
 

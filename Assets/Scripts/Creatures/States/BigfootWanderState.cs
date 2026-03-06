@@ -31,6 +31,7 @@ public class BigfootWanderState : State
             bcontroller.MovingTime = Random.value * (controller.MaxWanderTime - 1);
             bcontroller.TimeSinceAction = 0;
             bcontroller.FaceDirection();
+            if (Random.value > 0.6f) bcontroller.PlayAudio(0, 4);
         }
         if (bcontroller.MovingTime <= 0) bcontroller.DontMove();
         //Debug.Log("MOOOOOOOOOVE");

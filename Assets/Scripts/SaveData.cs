@@ -14,6 +14,7 @@ public class SaveData : MonoBehaviour
     private DataProcessing dataFile;
     private string path;
     private float autosaveTimer;
+    [SerializeField] private float autosaveInterval;
 
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
@@ -26,9 +27,10 @@ public class SaveData : MonoBehaviour
     void Update()
     {
         autosaveTimer += Time.deltaTime;
-        if (autosaveTimer > 1)
+        if (autosaveTimer > autosaveInterval)
         {
             CreateDataToSave();
+            autosaveTimer = 0;
         }
     }
 

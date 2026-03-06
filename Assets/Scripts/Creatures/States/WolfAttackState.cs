@@ -20,7 +20,7 @@ public class WolfAttackState : State
         }
         
         controller.Direction = (target - controller.MyPosition).normalized;
-        //controller.FaceDirection();
+        controller.FaceDirection();
         //controller.direction = Vector3.forward;
         if (controller.Aggression > 1)
         {
