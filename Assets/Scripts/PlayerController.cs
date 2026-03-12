@@ -32,14 +32,18 @@ public class PlayerController : MonoBehaviour
     [SerializeField] private float maxHealth = 100;
     [SerializeField] private float maxHunger = 100;
     [SerializeField] private float invulnTime = 0.35f;
-    [SerializeField] private float darknessDamageThreshold = 0.25f;
-    [SerializeField] private float darknessTimeMultiplier = 0.1f;
     [SerializeField] private float starveDamage = 0.05f;
     [SerializeField] private float passiveHungerLoss = 0.003f;
     [SerializeField] private float sprintHungerLoss = 0.009f;
     private float health;
     private float hunger;
     private bool currentlyInvuln;
+
+    [Header("Darkness")]
+    [SerializeField] private float darknessDamageThreshold = 0.25f;
+    [SerializeField] private float darknessTimeMultiplier = 0.1f;
+    [SerializeField] private AudioSource darknessAlertSound;
+    [SerializeField] private float darknessAlertVolume = 0.5f;
     private float darknessTimer;
 
     // Input variables
@@ -230,11 +234,14 @@ public class PlayerController : MonoBehaviour
         if (daylight.LightValue < darknessDamageThreshold && !isInLight)
         {
             darknessTimer += Time.deltaTime;
-            Hurt(darknessDamageThreshold - daylight.LightValue + darknessTimer * darknessTimeMultiplier);
+            float damageVal = darknessDamageThreshold - daylight.LightValue + darknessTimer * darknessTimeMultiplier;
+            Hurt(damageVal);
+            darknessAlertSound.volume = damageVal * darknessAlertVolume;
         }
         else
         {
             darknessTimer = 0;
+            darknessAlertSound.volume = 0;
         }
 
         // The hunger also consumes you

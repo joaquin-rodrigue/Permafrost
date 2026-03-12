@@ -30,6 +30,7 @@ public class CreatureStateMachine : MonoBehaviour
     [SerializeField] protected GameObject model;
     [SerializeField] protected GameObject hitbox;
     [SerializeField] protected AudioClip[] soundEffects;
+    [SerializeField] protected Animator anim;
 
     // Other object references
     protected GameObject player;
@@ -158,6 +159,7 @@ public class CreatureStateMachine : MonoBehaviour
             Mathf.Clamp(rb.linearVelocity.z, -CurrentSpeed, CurrentSpeed)
         );
         transform.rotation = Quaternion.identity;
+        anim.SetFloat("speed", CurrentSpeed);
     }
 
     /// <summary>
@@ -168,6 +170,7 @@ public class CreatureStateMachine : MonoBehaviour
         rb.linearVelocity = new Vector3(0, rb.linearVelocity.y, 0);
         transform.rotation = Quaternion.identity;
         rb.angularVelocity.Set(0, 0, 0);
+        anim.SetFloat("speed", 0);
     }
 
     /// <summary>
@@ -194,9 +197,11 @@ public class CreatureStateMachine : MonoBehaviour
 
     protected IEnumerator HitboxCycle()
     {
+        anim.SetBool("attacking", true);
         hitbox.SetActive(true);
         yield return new WaitForSeconds(1f);
         hitbox.SetActive(false);
+        anim.SetBool("attacking", false);
     }
     #endregion
 }
