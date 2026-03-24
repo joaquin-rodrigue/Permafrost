@@ -22,7 +22,7 @@ ModelImporter:
     animationDoRetargetingWarnings: 0
     importAnimatedCustomProperties: 0
     importConstraints: 0
-    animationCompression: 1
+    animationCompression: 3
     animationRotationError: 0.5
     animationPositionError: 0.5
     animationScaleError: 0.5
@@ -80,7 +80,132 @@ ModelImporter:
   humanDescription:
     serializedVersion: 3
     human: []
-    skeleton: []
+    skeleton:
+    - name: chickenuv 1(Clone)
+      parentName: 
+      position: {x: 0, y: 0, z: 0}
+      rotation: {x: 0, y: 0, z: 0, w: 1}
+      scale: {x: 1, y: 1, z: 1}
+    - name: mesh
+      parentName: chickenuv 1(Clone)
+      position: {x: -0, y: 0, z: 0}
+      rotation: {x: 0, y: -0, z: -0, w: 1}
+      scale: {x: 1, y: 1, z: 1}
+    - name: RoadKillOut
+      parentName: mesh
+      position: {x: -0, y: 0, z: 0}
+      rotation: {x: 0, y: -0, z: -0, w: 1}
+      scale: {x: 1, y: 1, z: 1}
+    - name: global_mover
+      parentName: chickenuv 1(Clone)
+      position: {x: -0, y: 0, z: 0}
+      rotation: {x: 0, y: -0, z: -0, w: 1}
+      scale: {x: 1, y: 1, z: 1}
+    - name: global_scale
+      parentName: global_mover
+      position: {x: -0, y: 0, z: 0}
+      rotation: {x: 0, y: -0, z: -0, w: 1}
+      scale: {x: 1, y: 1, z: 1}
+    - name: iks
+      parentName: global_scale
+      position: {x: -0, y: 0, z: 0}
+      rotation: {x: 0, y: -0, z: -0, w: 1}
+      scale: {x: 1, y: 1, z: 1}
+    - name: left_leg
+      parentName: iks
+      position: {x: -0.0021829968, y: -0.0085899895, z: -0.00029222635}
+      rotation: {x: 0, y: -0, z: -0, w: 1}
+      scale: {x: 1, y: 1, z: 1}
+    - name: right_leg
+      parentName: iks
+      position: {x: 0.0021829999, y: -0.0085899895, z: -0.000292226}
+      rotation: {x: 0, y: -0, z: -0, w: 1}
+      scale: {x: 1, y: 1, z: 1}
+    - name: joints
+      parentName: global_scale
+      position: {x: 0, y: 0.0105476305, z: 0.0026809815}
+      rotation: {x: 0, y: -0, z: -0, w: 1}
+      scale: {x: 1, y: 1, z: 1}
+    - name: root
+      parentName: joints
+      position: {x: -0, y: 0.0013796166, z: -0.0036088477}
+      rotation: {x: 0.3143364, y: -0.6333977, z: -0.3143364, w: 0.6333977}
+      scale: {x: 1, y: 1, z: 1}
+    - name: tail
+      parentName: root
+      position: {x: -0.008499681, y: 1.110223e-18, z: 0}
+      rotation: {x: 0, y: -0, z: -0, w: 1}
+      scale: {x: 1, y: 1, z: 1}
+    - name: neck
+      parentName: root
+      position: {x: 0.0015212556, y: 0.0054444913, z: 0}
+      rotation: {x: 0.8422792, y: -0.5390416, z: -3.3006776e-17, w: 5.1574724e-17}
+      scale: {x: 1, y: 1, z: 1}
+    - name: head
+      parentName: neck
+      position: {x: -0.008650075, y: -1.110223e-18, z: 0}
+      rotation: {x: 0, y: -0, z: -0, w: 1}
+      scale: {x: 1, y: 1, z: 1}
+    - name: left_breast
+      parentName: root
+      position: {x: 0.0042832107, y: 0.0062652975, z: 0.0027254897}
+      rotation: {x: -2.5446415e-17, y: 4.3373318e-17, z: 0.5060255, w: 0.86251855}
+      scale: {x: 1, y: 1, z: 1}
+    - name: left_wing
+      parentName: left_breast
+      position: {x: -0.007779211, y: -0.00009573106, z: 0.0016410032}
+      rotation: {x: 0, y: -0, z: -0, w: 1}
+      scale: {x: 1, y: 1, z: 1}
+    - name: left_hip
+      parentName: root
+      position: {x: 0.0025736073, y: -0.0007892739, z: 0.0021829968}
+      rotation: {x: 0.13628595, y: 0.6892791, z: 0.6921154, w: 0.16521764}
+      scale: {x: 1, y: 1, z: 1}
+    - name: left_thigh
+      parentName: left_hip
+      position: {x: -0.0042232675, y: -1.8755075e-18, z: 1.6222172e-18}
+      rotation: {x: 0.002279922, y: -0.33566287, z: -0.004127263, w: 0.94197047}
+      scale: {x: 1, y: 1, z: 1}
+    - name: left_foot
+      parentName: left_thigh
+      position: {x: -0.0047027757, y: -2.1028255e-18, z: 5.551115e-19}
+      rotation: {x: 0.013952587, y: 0.14971927, z: 0.018098185, w: 0.9884645}
+      scale: {x: 1, y: 1, z: 1}
+    - name: right_breast
+      parentName: root
+      position: {x: 0.0042832056, y: 0.0062652975, z: -0.00272549}
+      rotation: {x: 0, y: 0, z: -0.86251855, w: 0.5060255}
+      scale: {x: 1, y: 1, z: 1}
+    - name: right_wing
+      parentName: right_breast
+      position: {x: 0.0077792113, y: 0.000095735224, z: -0.001641}
+      rotation: {x: 0, y: -0, z: -0, w: 1}
+      scale: {x: 1, y: 1, z: 1}
+    - name: right_hip
+      parentName: root
+      position: {x: 0.002573607, y: -0.0007892691, z: -0.0021829999}
+      rotation: {x: 0.6892791, y: -0.13628554, z: -0.16521716, w: 0.69211555}
+      scale: {x: 1, y: 1, z: 1}
+    - name: right_thigh
+      parentName: right_hip
+      position: {x: 0.004223269, y: 0, z: 0.000000005946003}
+      rotation: {x: 0.0022799969, y: -0.33566347, z: -0.004127398, w: 0.94197017}
+      scale: {x: 1, y: 1, z: 1}
+    - name: right_foot
+      parentName: right_thigh
+      position: {x: 0.004702774, y: 2.7755575e-19, z: 2.938532e-10}
+      rotation: {x: 0.01395251, y: 0.14971933, z: 0.01809823, w: 0.9884645}
+      scale: {x: 1, y: 1, z: 1}
+    - name: ctrl
+      parentName: global_scale
+      position: {x: -0, y: 0, z: 0}
+      rotation: {x: 0, y: -0, z: -0, w: 1}
+      scale: {x: 1, y: 1, z: 1}
+    - name: extras
+      parentName: chickenuv 1(Clone)
+      position: {x: -0, y: 0, z: 0}
+      rotation: {x: 0, y: -0, z: -0, w: 1}
+      scale: {x: 1, y: 1, z: 1}
     armTwist: 0.5
     foreArmTwist: 0.5
     upperLegTwist: 0.5
@@ -91,7 +216,7 @@ ModelImporter:
     globalScale: 1
     rootMotionBoneName: root
     hasTranslationDoF: 0
-    hasExtraRoot: 0
+    hasExtraRoot: 1
     skeletonHasParents: 1
   lastHumanDescriptionAvatarSource: {instanceID: 0}
   autoGenerateAvatarMappingIfUnspecified: 1

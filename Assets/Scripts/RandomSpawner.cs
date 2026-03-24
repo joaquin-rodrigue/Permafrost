@@ -200,9 +200,6 @@ public class RandomSpawner : MonoBehaviour
         }
 
         // --- SHACKS ---
-        // this kinda sucks but because random spawner doesn't get to start until
-        // after generation is done, this is now being done here...
-        // realizing this loop is done even time a chunk loads, wasting some time
         itemSpawnWeightsTotal = 0;
         foreach (int weight in itemSpawnWeights)
         {

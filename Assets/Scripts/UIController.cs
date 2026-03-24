@@ -30,6 +30,8 @@ public class UIController : MonoBehaviour
     [Header("Player UI")]
     [SerializeField] private Image healthImage;
     [SerializeField] private GameObject healthBar;
+    [SerializeField] private Material healthVignette;
+    private Shader healthVignetteShader;
     [SerializeField] private Image hungerImage;
     [SerializeField] private GameObject hungerBar;
     [SerializeField] private TMP_Text[] inventorySlots;
@@ -64,6 +66,7 @@ public class UIController : MonoBehaviour
 
     private void Start()
     {
+        healthVignetteShader = healthVignette.shader;
         // FPS meter is basically a debug option
         if (fpsMeter != null && enableFpsMeter)
         {
@@ -84,6 +87,7 @@ public class UIController : MonoBehaviour
     {
         if (health < 0) health = 0;
         healthImage.rectTransform.localScale = new Vector3(health / maxHealth, 1, 1);
+        healthVignette.SetFloat("_Power", (health / maxHealth) * 10); // todo: modfiy this math to make the vignette make a bit more sense
     }
 
     // Updates all the inventory sections
@@ -292,6 +296,7 @@ public class UIController : MonoBehaviour
     public void ReturnToMenu()
     {
         Time.timeScale = 1f; // reset because death scene
+        healthVignette.SetFloat("_Power", 10); // also reset because death scene
         SceneManager.LoadScene(0);
     }
 

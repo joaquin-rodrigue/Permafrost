@@ -198,9 +198,11 @@ public class CreatureStateMachine : MonoBehaviour
     protected IEnumerator HitboxCycle()
     {
         anim.SetBool("attacking", true);
+        damageDealingActive = true;
         hitbox.SetActive(true);
         yield return new WaitForSeconds(1f);
         hitbox.SetActive(false);
+        damageDealingActive = false;
         anim.SetBool("attacking", false);
     }
     #endregion
