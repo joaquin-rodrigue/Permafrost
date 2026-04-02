@@ -313,6 +313,7 @@ public class PlayerController : MonoBehaviour
         ui.UpdateInventoryUI(inventory, selectedItem);
         ui.UpdateButtonPrompts(inventory[selectedItem], interactCheckPoint.transform);
         ui.UpdateHungerUI(hunger, maxHunger);
+        ui.UpdateCompass(transform.rotation.eulerAngles.y);
 
         // Check terrain updating
         terrainUpdateCheckTimer += chunksGenerating ? 0 : Time.fixedDeltaTime;

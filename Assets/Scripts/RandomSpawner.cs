@@ -59,6 +59,8 @@ public class RandomSpawner : MonoBehaviour
     private int itemSpawnWeightsTotal;
     [Header("Shacks")]
     [SerializeField] private float shackSpawnChance;
+    [SerializeField] private int totalItemsToSpawn;
+    [SerializeField] private Bounds spawningZone;
     [SerializeField] private int[] itemSpawnWeights;
     [SerializeField] private GameObject[] itemsToSpawn;
 
@@ -102,20 +104,79 @@ public class RandomSpawner : MonoBehaviour
         treeCount = generation.random.Next(treeCountMin, treeCountMax);
         bool foundValidSpawn = false;
         RaycastHit hit = new();
+        int loopCount = 0; // prevent rng from causing an infinite loop
+
+        // --- SHACKS ---
+        itemSpawnWeightsTotal = 0;
+        foreach (int weight in itemSpawnWeights)
+        {
+            itemSpawnWeightsTotal += weight;
+        }
+
+        double roll = generation.random.NextDouble();
+        if (roll < shackSpawnChance)
+        {
+            loopCount = 0;
+            foundValidSpawn = false;
+            while (!foundValidSpawn && loopCount < maxLoopCountDuringGeneration)
+            {
+                foundValidSpawn = Physics.Raycast(new Vector3(
+                    generation.random.Next((int)generation.MapBounds.min.x, (int)generation.MapBounds.max.x),
+                    120,
+                    generation.random.Next((int)generation.MapBounds.min.z, (int)generation.MapBounds.max.z)),
+                    Vector3.down,
+                    out hit,
+                    120,
+                    terrainLayerMask
+                );
+                loopCount++;
+            }
+
+            if (loopCount > maxLoopCountDuringGeneration)
+            {
+                Debug.Log("shack: no spawns left!");
+            }
+            else
+            {
+                // now we actually spawn the shack and drop the items in
+                GameObject newShack = Instantiate(shack, terrainParent.transform);
+                newShack.transform.SetPositionAndRotation(hit.point + Vector3.up, Quaternion.Euler(0, generation.random.Next(0, 360), 0));
+                for (int l = 0; l < totalItemsToSpawn; l++)
+                {
+                    int choice = generation.random.Next(itemSpawnWeightsTotal);
+                    int itemIndex = -1, temp = 0;
+                    //Debug.Log(choice);
+                    for (int i = 0; i < itemSpawnWeights.Length; i++)
+                    {
+                        if (itemSpawnWeights[i] + temp > choice)
+                        {
+                            itemIndex = i;
+                            break;
+                        }
+                        temp += itemSpawnWeights[i];
+                    }
+                    GameObject item = Instantiate(itemsToSpawn[itemIndex], newShack.transform);
+                    item.transform.SetPositionAndRotation(hit.point + spawningZone.center + new Vector3(
+                        UnityEngine.Random.Range(spawningZone.min.x, spawningZone.max.x),
+                        UnityEngine.Random.Range(spawningZone.min.y, spawningZone.max.y),
+                        UnityEngine.Random.Range(spawningZone.min.z, spawningZone.max.z)
+                    ), Quaternion.identity);
+                }
+            }
+        }
 
         // --- TREES ---
-        int loopCount = 0; // prevent rng from causing an infinite loop
         for (int i = 0; i < treeCount && loopCount < maxLoopCountDuringGeneration;)
         {
             foundValidSpawn = false;
             while (!foundValidSpawn && loopCount < maxLoopCountDuringGeneration)
             {
                 foundValidSpawn = Physics.Raycast(new Vector3(
-                    generation.random.Next((int) generation.MapBounds.min.x, (int) generation.MapBounds.max.x), 
-                    120, 
-                    generation.random.Next((int) generation.MapBounds.min.z, (int) generation.MapBounds.max.z)), 
-                    Vector3.down, 
-                    out hit, 
+                    generation.random.Next((int)generation.MapBounds.min.x, (int)generation.MapBounds.max.x),
+                    120,
+                    generation.random.Next((int)generation.MapBounds.min.z, (int)generation.MapBounds.max.z)),
+                    Vector3.down,
+                    out hit,
                     120,
                     terrainLayerMask
                 );
@@ -196,58 +257,6 @@ public class RandomSpawner : MonoBehaviour
                 current.transform.SetPositionAndRotation(chosenPoint.point, Quaternion.Euler(0, generation.random.Next(0, 360), 0));
                 current.transform.localScale = new Vector3(UnityEngine.Random.value * 0.1f + 0.95f, UnityEngine.Random.value * 0.1f + 0.95f, UnityEngine.Random.value * 0.1f + 0.95f);
                 i++;
-            }
-        }
-
-        // --- SHACKS ---
-        itemSpawnWeightsTotal = 0;
-        foreach (int weight in itemSpawnWeights)
-        {
-            itemSpawnWeightsTotal += weight;
-        }
-
-        double roll = generation.random.NextDouble();
-        if (roll < shackSpawnChance)
-        {
-            loopCount = 0;
-            foundValidSpawn = false;
-            while (!foundValidSpawn && loopCount < maxLoopCountDuringGeneration)
-            {
-                foundValidSpawn = Physics.Raycast(new Vector3(
-                    generation.random.Next((int)generation.MapBounds.min.x, (int)generation.MapBounds.max.x),
-                    120,
-                    generation.random.Next((int)generation.MapBounds.min.z, (int)generation.MapBounds.max.z)),
-                    Vector3.down,
-                    out hit,
-                    120,
-                    terrainLayerMask
-                );
-                loopCount++;
-            }
-
-            if (loopCount > maxLoopCountDuringGeneration)
-            {
-                Debug.Log("shack: no spawns left!");
-            }
-            else
-            {
-                // now we actually spawn the shack and drop the items in
-                GameObject newShack = Instantiate(shack, terrainParent.transform);
-                newShack.transform.SetPositionAndRotation(hit.point + Vector3.up, Quaternion.Euler(0, generation.random.Next(0, 360), 0));
-                int choice = generation.random.Next(itemSpawnWeightsTotal);
-                int itemIndex = -1, temp = 0;
-                //Debug.Log(choice);
-                for (int i = 0; i < itemSpawnWeights.Length; i++)
-                {
-                    if (itemSpawnWeights[i] + temp > choice)
-                    {
-                        itemIndex = i;
-                        break;
-                    }
-                    temp += itemSpawnWeights[i];
-                }
-                GameObject item = Instantiate(itemsToSpawn[itemIndex], newShack.transform);
-                item.transform.SetPositionAndRotation(hit.point + new Vector3(0, 3, 0), Quaternion.identity);
             }
         }
 

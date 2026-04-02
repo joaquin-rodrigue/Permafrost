@@ -1,8 +1,6 @@
-using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
-using UnityEngine.InputSystem;
 using System.Collections;
 using UnityEngine.SceneManagement;
 
@@ -35,14 +33,17 @@ public class UIController : MonoBehaviour
     [SerializeField] private Image hungerImage;
     [SerializeField] private GameObject hungerBar;
     [SerializeField] private TMP_Text[] inventorySlots;
+    [SerializeField] private Image[] inventorySprites;
     [SerializeField] private GameObject inventoryUI;
     [SerializeField] private GameObject[] buttonPrompts;
     [SerializeField] private RectTransform buttonPromptOrigin;
+    [SerializeField] private GameObject compass;
     private bool playerUIActive = true;
 
     // Keybinding images
     [SerializeField] private Sprite[] buttonsForPrompts;
     [SerializeField] private string[] keyBindingsForPrompts;
+    [SerializeField] private ItemLibrary itemLib;
 
     // Menus
     [Header("Pause Menu")]
@@ -98,10 +99,13 @@ public class UIController : MonoBehaviour
             if (inventory[i] != null)
             {
                 inventorySlots[i].text = inventory[i].Stats.Name + (inventory[i].GetCount() > 1 ? " x" + inventory[i].GetCount() : "");
+                inventorySprites[i].sprite = itemLib.GetItemInventoryRender(inventory[i].Stats.Name);
+                inventorySprites[i].gameObject.SetActive(true);
             }
             else
             {
                 inventorySlots[i].text = "None";
+                inventorySprites[i].gameObject.SetActive(false);
             }
             inventorySlots[i].fontSize = 18;
         }
@@ -273,6 +277,15 @@ public class UIController : MonoBehaviour
         // todo: move the buttom prompt object so the prompts are centered
         buttonPromptOrigin.anchoredPosition = new Vector3(375 - (75 * activePrompts * 1.25f), 160, 0);
     }
+
+    /// <summary>
+    /// Just rotates the compass.
+    /// </summary>
+    /// <param name="rotation">The Euler angle Z to rotate the compass to.</param>
+    public void UpdateCompass(float rotation)
+    {
+        compass.transform.rotation = Quaternion.Euler(0, 0, rotation);
+    }
     #endregion
 
     #region Pause + Death Menu
@@ -285,6 +298,7 @@ public class UIController : MonoBehaviour
             hungerBar.SetActive(false);
             inventoryUI.SetActive(false);
             buttonPromptOrigin.gameObject.SetActive(false);
+            compass.SetActive(false);
         }
         fireplaceMenu.SetActive(false);
         carMenu.SetActive(false);
@@ -309,6 +323,7 @@ public class UIController : MonoBehaviour
             hungerBar.SetActive(true);
             inventoryUI.SetActive(true);
             buttonPromptOrigin.gameObject.SetActive(true);
+            compass.SetActive(true);
         }
         playerUIActive = true;
         pauseMenu.SetActive(false);
