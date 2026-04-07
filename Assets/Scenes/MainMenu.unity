@@ -6080,6 +6080,7 @@ MonoBehaviour:
   extrasMenuObj: {fileID: 64848375}
   controlsMenuObj: {fileID: 1204867127}
   transitionLength: 45
+  loadScreenFadeInTime: 2
 --- !u!1 &735135206
 GameObject:
   m_ObjectHideFlags: 0

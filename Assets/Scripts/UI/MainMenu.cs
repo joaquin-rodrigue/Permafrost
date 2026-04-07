@@ -15,6 +15,7 @@ public class MainMenu : MonoBehaviour
     [SerializeField] private GameObject extrasMenuObj;
     [SerializeField] private GameObject controlsMenuObj;
     [SerializeField] private int transitionLength;
+    [SerializeField] private float loadScreenFadeInTime;
 
     #region Extras Menu Transitions
     public void EnterExtrasMenu()
@@ -110,6 +111,17 @@ public class MainMenu : MonoBehaviour
     }
     public void StartGame()
     {
+        StartCoroutine(FadeToLoad());
+    }
+
+    /// <summary>
+    /// uhhhhhhh
+    /// </summary>
+    /// <returns></returns>
+    private IEnumerator FadeToLoad()
+    {
+        SceneManager.LoadSceneAsync("Loading", LoadSceneMode.Additive);
+        yield return new WaitForSeconds(loadScreenFadeInTime + 0.1f);
         SceneManager.LoadScene(1);
     }
 }
