@@ -86,6 +86,14 @@ public class PlayerController : MonoBehaviour
     [SerializeField] private float meleeSwingVolume;
     [SerializeField] private AudioClip[] eatSounds;
     [SerializeField] private float eatVolume;
+    [SerializeField] private AudioClip[] pickupSounds;
+    [SerializeField] private float pickupVolume;
+    [SerializeField] private AudioClip[] footstepSounds;
+    [SerializeField] private float footstepVolume;
+    [SerializeField] private AudioSource pickupAudio;
+    [SerializeField] private AudioSource footstepAudio;
+    [SerializeField] private float timeBetweenFootprints;
+    private float footprintTimer;
 
     // Other item related
     [Header("Interactions References")]
@@ -222,6 +230,19 @@ public class PlayerController : MonoBehaviour
             canJump = false;
         }
         jumpInput = false;
+        // footprinting
+        if (canJump)
+        {
+            float amt = targetVelocity.magnitude * Time.fixedDeltaTime;
+            footprintTimer += amt;
+            if (footprintTimer > timeBetweenFootprints)
+            {
+                footstepAudio.clip = footstepSounds[Random.Range(0, footstepSounds.Length)];
+                footstepAudio.volume = footstepVolume;
+                footstepAudio.Play();
+                footprintTimer -= timeBetweenFootprints;
+            }
+        }
 
         // Attack
         if (attacking && canAttack)
@@ -485,6 +506,9 @@ public class PlayerController : MonoBehaviour
                 inventory[i] = new Item(theThingWeWant);
                 Destroy(item);
                 dataCollector.itemsGathered++;
+                pickupAudio.clip = pickupSounds[Random.Range(0, pickupSounds.Length)];
+                pickupAudio.volume = pickupVolume;
+                pickupAudio.Play();
                 ChangeViewModel();
                 break;
             }
@@ -494,6 +518,9 @@ public class PlayerController : MonoBehaviour
                 inventory[i].IncrementCount();
                 Destroy(item);
                 dataCollector.itemsGathered++;
+                pickupAudio.clip = pickupSounds[Random.Range(0, pickupSounds.Length)];
+                pickupAudio.volume = pickupVolume;
+                pickupAudio.Play();
                 break;
             }
         }
