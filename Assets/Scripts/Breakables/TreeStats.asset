@@ -16,3 +16,5 @@ MonoBehaviour:
   DropItem: {fileID: 152371615304991051, guid: f8d2b5246c651304e99e3fae935593d3, type: 3}
   MinDropCount: 3
   MaxDropCount: 5
+  TypeForBreaking: 4
+  OnHitSoundType: 0

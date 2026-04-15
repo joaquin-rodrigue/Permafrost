@@ -5,6 +5,7 @@ public class SnapshotZone : MonoBehaviour
 {
     public AudioMixerSnapshot inside;
     public AudioMixerSnapshot outside;
+    public AudioMixerSnapshot start;
     public float transitionTime = 1f;
 
     void OnTriggerEnter(Collider other)
@@ -15,5 +16,15 @@ public class SnapshotZone : MonoBehaviour
     void OnTriggerExit(Collider other)
     {
         outside.TransitionTo(transitionTime);
+    }
+
+    public void StartMenuSound()
+    {
+        start.TransitionTo(0);
+    }
+
+    public void StartMenuExit()
+    {
+        outside.TransitionTo(1f);
     }
 }

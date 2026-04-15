@@ -156,7 +156,7 @@ public class RandomSpawner : MonoBehaviour
                         temp += itemSpawnWeights[i];
                     }
                     GameObject item = Instantiate(itemsToSpawn[itemIndex], newShack.transform);
-                    item.transform.SetPositionAndRotation(hit.point + spawningZone.center + new Vector3(
+                    item.transform.SetLocalPositionAndRotation(new Vector3(
                         UnityEngine.Random.Range(spawningZone.min.x, spawningZone.max.x),
                         UnityEngine.Random.Range(spawningZone.min.y, spawningZone.max.y),
                         UnityEngine.Random.Range(spawningZone.min.z, spawningZone.max.z)

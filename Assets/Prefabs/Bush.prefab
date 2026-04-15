@@ -68,6 +68,13 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   stats: {fileID: 11400000, guid: e3df6cb316b8ea646ab4c016418c4878, type: 2}
+  hitSounds:
+  - {fileID: 8300000, guid: 423e3abb0ad68b346be2da9b53911caa, type: 3}
+  - {fileID: 8300000, guid: 97757c52e27ecbf41a39e229e2f73e79, type: 3}
+  - {fileID: 8300000, guid: d89e284f3eefbd74dbdc4aa9ef257fab, type: 3}
+  - {fileID: 8300000, guid: 1ea6557b70146d34a8ff98443d7e5bfc, type: 3}
+  - {fileID: 8300000, guid: b9182d2f9a5141141850a2aa5b04b964, type: 3}
+  sounder: {fileID: 0}
 --- !u!1 &3306821854782509936
 GameObject:
   m_ObjectHideFlags: 0

@@ -5968,6 +5968,7 @@ GameObject:
   - component: {fileID: 721993469}
   - component: {fileID: 721993468}
   - component: {fileID: 721993472}
+  - component: {fileID: 721993473}
   m_Layer: 5
   m_Name: Canvas
   m_TagString: Untagged
@@ -6081,6 +6082,22 @@ MonoBehaviour:
   controlsMenuObj: {fileID: 1204867127}
   transitionLength: 45
   loadScreenFadeInTime: 2
+--- !u!114 &721993473
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 721993467}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ba3bb4536805926409f1d50f775681e5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  inside: {fileID: 0}
+  outside: {fileID: 0}
+  start: {fileID: 8173438258797909956, guid: f534a9a2698e4c74ea677841728a810f, type: 2}
+  transitionTime: 1
 --- !u!1 &735135206
 GameObject:
   m_ObjectHideFlags: 0
@@ -6383,6 +6400,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 779253454}
     m_Modifications:
+    - target: {fileID: 3117203968312124550, guid: 2141efeeab84a7e479a8036badb2d6f5, type: 3}
+      propertyPath: m_Volume
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 3393367493676954227, guid: 2141efeeab84a7e479a8036badb2d6f5, type: 3}
       propertyPath: m_Name
       value: Fire

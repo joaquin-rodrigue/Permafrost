@@ -18,6 +18,7 @@ public class BigfootStalkState : State
         if (distance > bcontroller.IdealStalkDistance || diff < bcontroller.BehindPlayerDifference)
         {
             bcontroller.Move();
+            if (Random.value > 0.023f) bcontroller.PlayAudio(0, 4);
         }
     }
 

@@ -1,3 +1,4 @@
+using System.Collections;
 using UnityEngine;
 
 /// <summary>
@@ -24,6 +25,7 @@ public class BigfootStateController : CreatureStateMachine
     public float PlayerStaringDifference { get => 360 - staringAngleTolerance; }
     public float AttackStateCooldown { get =>  attackStateCooldown; }
     public float AggressionLimit { get => attackTimeLimit; }
+    public bool IsHeRoaring { get; private set; }
     public Vector3 PlayerRotation { get => player.transform.rotation.eulerAngles; }
     public Vector3 ModelRotation { get => model.transform.rotation.eulerAngles; }
 
@@ -56,8 +58,35 @@ public class BigfootStateController : CreatureStateMachine
     public override void Attack()
     {
         Debug.Log("attacking");
+        StartCoroutine(BigfootAttackAnim());
+    }
 
+    private IEnumerator BigfootAttackAnim()
+    {
+        anim.SetBool("attacking", true);
+        PlayAudio(5, 8);
         Attacking = true;
+        yield return new WaitForSeconds(0.25f);
+
+        StartCoroutine(HitboxCycle());
+        yield return new WaitForSeconds(0.7f);
+        Attacking = false;
+        anim.SetBool("attacking", false);
     }
     #endregion
+
+    public void HeRoar()
+    {
+        StartCoroutine(Roar());
+    }
+
+    private IEnumerator Roar()
+    {
+        anim.SetBool("roar", true);
+        PlayAudio(9, 11);
+        IsHeRoaring = true;
+        yield return new WaitForSeconds(2.45f);
+        anim.SetBool("roar", false);
+        IsHeRoaring = false;
+    }
 }

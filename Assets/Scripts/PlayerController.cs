@@ -88,11 +88,13 @@ public class PlayerController : MonoBehaviour
     [SerializeField] private float eatVolume;
     [SerializeField] private AudioClip[] pickupSounds;
     [SerializeField] private float pickupVolume;
+    [SerializeField] private AudioSource pickupAudio;
     [SerializeField] private AudioClip[] footstepSounds;
     [SerializeField] private float footstepVolume;
-    [SerializeField] private AudioSource pickupAudio;
     [SerializeField] private AudioSource footstepAudio;
     [SerializeField] private float timeBetweenFootprints;
+    [SerializeField] private AudioClip[] treeHitSounds;
+    [SerializeField] private float treeHitVolume;
     private float footprintTimer;
 
     // Other item related
@@ -165,6 +167,8 @@ public class PlayerController : MonoBehaviour
         itemViewModelAnimation = itemViewModel.GetComponent<Animator>();
         itemViewModelAudio = itemViewModel.GetComponent<AudioSource>();
         itemParticles.Stop();
+
+        GetComponent<SnapshotZone>().StartMenuExit();
     }
 
     // Input handling happens here for more input accuracy
@@ -237,9 +241,9 @@ public class PlayerController : MonoBehaviour
             footprintTimer += amt;
             if (footprintTimer > timeBetweenFootprints)
             {
-                footstepAudio.clip = footstepSounds[Random.Range(0, footstepSounds.Length)];
+                //Debug.Log("footprinter");
                 footstepAudio.volume = footstepVolume;
-                footstepAudio.Play();
+                footstepAudio.PlayOneShot(footstepSounds[Random.Range(0, footstepSounds.Length)]);
                 footprintTimer -= timeBetweenFootprints;
             }
         }
@@ -819,7 +823,9 @@ public class PlayerController : MonoBehaviour
             }
             Destroy(obj.gameObject);
         }
-
+        itemViewModelAudio.clip = treeHitSounds[Random.Range(0, treeHitSounds.Length)];
+        itemViewModelAudio.volume = treeHitVolume;
+        itemViewModelAudio.Play();
         inventory[selectedItem].DecrementDurability();
         if (inventory[selectedItem].GetDurability() <= 0)
         {

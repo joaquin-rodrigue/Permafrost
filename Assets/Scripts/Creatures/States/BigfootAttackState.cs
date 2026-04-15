@@ -1,5 +1,6 @@
 using UnityEngine;
 
+// todo: needs SO MUCH WORK
 public class BigfootAttackState : State
 {
     public BigfootAttackState(BigfootStateController controller) : base(controller) { }
@@ -7,17 +8,17 @@ public class BigfootAttackState : State
     public override void Act()
     {
         BigfootStateController bcontroller = (BigfootStateController) controller;
+        if (bcontroller.IsHeRoaring) return;
         float distance = Vector3.Distance(bcontroller.MyPosition, bcontroller.PlayerPosition);
-
+        Debug.Log(distance);
         bcontroller.Direction = (bcontroller.PlayerPosition - bcontroller.MyPosition).normalized;
         bcontroller.FaceDirection();
         bcontroller.Aggression -= Time.deltaTime;
 
-        if (!bcontroller.Attacking)
-        {
-            bcontroller.Move();
-        }
-        else if (distance < 1f)
+        if (bcontroller.Attacking) return;
+        
+        bcontroller.Move();
+        if (distance < 4f)
         {
             bcontroller.Attack();
             bcontroller.Aggression--;
@@ -47,6 +48,7 @@ public class BigfootAttackState : State
     {
         controller.CurrentSpeed = controller.RunSpeed;
         controller.Aggression = ((BigfootStateController) controller).AggressionLimit;
+        ((BigfootStateController) controller).HeRoar();
     }
 
     public override void OnStateExit()

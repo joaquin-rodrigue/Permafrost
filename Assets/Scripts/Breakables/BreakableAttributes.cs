@@ -11,4 +11,5 @@ public class BreakableAttributes : ScriptableObject
     public int MinDropCount;
     public int MaxDropCount;
     public ItemType TypeForBreaking;
+    public SoundType OnHitSoundType;
 }

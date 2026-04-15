@@ -17,6 +17,11 @@ public class MainMenu : MonoBehaviour
     [SerializeField] private int transitionLength;
     [SerializeField] private float loadScreenFadeInTime;
 
+    private void Start()
+    {
+        GetComponent<SnapshotZone>().StartMenuSound();
+    }
+
     #region Extras Menu Transitions
     public void EnterExtrasMenu()
     {

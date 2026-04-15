@@ -20,6 +20,11 @@ public enum WeaponType
     None, Melee, Gun
 }
 
+public enum SoundType
+{
+    WoodHit, FastSwing, SlowSwing
+}
+
 /// <summary>
 ///     Class for one item. An item's stats and other major values are stored within the ItemAttributes,
 ///     and modifiable data for an item is stored here (stack count, current durability, etc).
