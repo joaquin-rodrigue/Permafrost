@@ -111,7 +111,17 @@ MonoBehaviour:
   drop: {fileID: 2378287371582904568, guid: b7ceeb9df7790c64c90a42ae456c2277, type: 3}
   model: {fileID: 4344605516434823391}
   hitbox: {fileID: 0}
-  soundEffects: []
+  soundEffects:
+  - {fileID: 8300000, guid: 3f032ea4c59ac1d48bfff7dea1b8b0b6, type: 3}
+  - {fileID: 8300000, guid: 1b95f50d953e93341aff913358f53f27, type: 3}
+  - {fileID: 8300000, guid: 65b8f4d7dc1b55e46b6910a5bcd4e9d7, type: 3}
+  - {fileID: 8300000, guid: a4ec6d19c85f4394ba99beffe63bddb7, type: 3}
+  - {fileID: 8300000, guid: cd2dadcd5a66cae47a1801809a4302ad, type: 3}
+  - {fileID: 8300000, guid: 51cf2d53a7647a6428f15336672f5cde, type: 3}
+  - {fileID: 8300000, guid: 400b06ba9861f8a47a31856030b22802, type: 3}
+  - {fileID: 8300000, guid: 8d00d12b5cb3877439b46fa46dbb053e, type: 3}
+  - {fileID: 8300000, guid: e5bb1e5167b4bcb4d836546665071ec1, type: 3}
+  - {fileID: 8300000, guid: 59af665f562385b4baf04fb36715724f, type: 3}
   anim: {fileID: 7281852195431531066}
   Direction: {x: 0, y: 0, z: 0}
   CurrentSpeed: 0
@@ -131,7 +141,7 @@ AudioSource:
   m_audioClip: {fileID: 0}
   m_Resource: {fileID: 0}
   m_PlayOnAwake: 1
-  m_Volume: 1
+  m_Volume: 0.32
   m_Pitch: 1
   Loop: 0
   Mute: 0
@@ -175,7 +185,7 @@ AudioSource:
     m_Curve:
     - serializedVersion: 3
       time: 0
-      value: 0
+      value: 1
       inSlope: 0
       outSlope: 0
       tangentMode: 0

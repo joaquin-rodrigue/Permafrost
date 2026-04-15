@@ -14,6 +14,17 @@ public class AnimalStateController : CreatureStateMachine
     #endregion
 
     #region State Machine Methods
-    //empty
+    public override void Hurt(int damage)
+    {
+        base.Hurt(damage);
+        if (health <= 0)
+        {
+            PlayAudio(9, 9);
+        }
+        else
+        {
+            PlayAudio(6, 8);
+        }
+    }
     #endregion
 }

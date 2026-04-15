@@ -15,6 +15,7 @@ public class WanderState : State
             controller.MovingTime = Random.value * (controller.MaxWanderTime - 1);
             controller.TimeSinceAction = 0;
             controller.FaceDirection();
+            if (Random.value > 0.5f) controller.PlayAudio(0, 5);
         }
         if (controller.MovingTime <= 0) controller.DontMove();
         else controller.Move();
