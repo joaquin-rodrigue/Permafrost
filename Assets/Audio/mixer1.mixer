@@ -117,7 +117,9 @@ AudioMixerController:
   m_SuspendThreshold: -80
   m_EnableSuspend: 1
   m_UpdateMode: 0
-  m_ExposedParameters: []
+  m_ExposedParameters:
+  - guid: 7c78b654d929dea48b32222ac78ebe04
+    name: PauseMuffle
   m_AudioMixerGroupViews:
   - guids:
     - 949a0b634c47bd64dba93084b9b7618e
@@ -128,7 +130,7 @@ AudioMixerController:
     - 1cbb7444372c04141a6692cc58bf68f5
     name: View
   m_CurrentViewIndex: 0
-  m_TargetSnapshot: {fileID: 8173438258797909956}
+  m_TargetSnapshot: {fileID: 24500006}
 --- !u!243 &24300002
 AudioMixerGroupController:
   m_ObjectHideFlags: 0
@@ -148,6 +150,7 @@ AudioMixerGroupController:
   m_Send: 00000000000000000000000000000000
   m_Effects:
   - {fileID: 24400004}
+  - {fileID: 4944643590270011870}
   m_UserColorIndex: 0
   m_Mute: 0
   m_Solo: 0
@@ -177,6 +180,7 @@ AudioMixerSnapshotController:
   m_SnapshotID: 4a53052ef210a934488c7c851461c0ac
   m_FloatValues:
     030e704077e567c4294573fd9a94e7bb: 0
+    7c78b654d929dea48b32222ac78ebe04: 1200
     5b722cc98545baa4d8bbf5017a1f5ebf: -80
     567b326c6ae16fb49adc97c60b583590: -42.07171
   m_TransitionOverrides: {}
@@ -210,6 +214,24 @@ AudioMixerEffectController:
   m_EffectName: Attenuation
   m_MixLevel: 58ae8259dd3f6b846b8c4a4b9a9da9bd
   m_Parameters: []
+  m_SendTarget: {fileID: 0}
+  m_EnableWetMix: 0
+  m_Bypass: 0
+--- !u!244 &4944643590270011870
+AudioMixerEffectController:
+  m_ObjectHideFlags: 3
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Name: 
+  m_EffectID: 15d6f64ca346e6e4d8889c6a915173af
+  m_EffectName: Lowpass
+  m_MixLevel: 67c32db86fdcddc44af1f0a21e50d586
+  m_Parameters:
+  - m_ParameterName: Cutoff freq
+    m_GUID: 7c78b654d929dea48b32222ac78ebe04
+  - m_ParameterName: Resonance
+    m_GUID: cd29a1a223289d9499dff9080aa61ea4
   m_SendTarget: {fileID: 0}
   m_EnableWetMix: 0
   m_Bypass: 0

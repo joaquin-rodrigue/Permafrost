@@ -6732,6 +6732,7 @@ MonoBehaviour:
   - {fileID: 8300000, guid: 1ea6557b70146d34a8ff98443d7e5bfc, type: 3}
   - {fileID: 8300000, guid: b9182d2f9a5141141850a2aa5b04b964, type: 3}
   treeHitVolume: 0.1
+  mixer: {fileID: 24100000, guid: f534a9a2698e4c74ea677841728a810f, type: 2}
   meleeWeapon: {fileID: 27347368}
   itemViewModel: {fileID: 2018252005}
   itemParticles: {fileID: 141594826}

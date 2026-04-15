@@ -4,6 +4,7 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using Unity.VisualScripting;
+using UnityEngine.Audio;
 
 /// <summary>
 ///     The controller for the player. Includes code for handling all player controls, player health
@@ -96,6 +97,7 @@ public class PlayerController : MonoBehaviour
     [SerializeField] private AudioClip[] treeHitSounds;
     [SerializeField] private float treeHitVolume;
     private float footprintTimer;
+    [SerializeField] private AudioMixer mixer;
 
     // Other item related
     [Header("Interactions References")]
@@ -357,6 +359,7 @@ public class PlayerController : MonoBehaviour
         Time.timeScale = 0f;
         IsPaused = true;
         Cursor.lockState = CursorLockMode.Confined;
+        mixer.SetFloat("PauseMuffle", 600);
         ui.ActivatePauseMenu();
     }
 
@@ -369,6 +372,7 @@ public class PlayerController : MonoBehaviour
         pauseInput = false;
         Time.timeScale = 1f;
         Cursor.lockState = CursorLockMode.Locked;
+        mixer.SetFloat("PauseMuffle", 20000);
         ui.DeactivatePauseMenu();
     }
 
@@ -505,6 +509,20 @@ public class PlayerController : MonoBehaviour
         
         for (int i = 0; i < inventorySize; i++)
         {
+            if (inventory[i].Stats.Name.Equals(theThingWeWant.Name)
+                && inventory[i].GetCount() < inventory[i].Stats.MaxStackSize)
+            {
+                inventory[i].IncrementCount();
+                Destroy(item);
+                dataCollector.itemsGathered++;
+                pickupAudio.clip = pickupSounds[Random.Range(0, pickupSounds.Length)];
+                pickupAudio.volume = pickupVolume;
+                pickupAudio.Play();
+                return;
+            }
+        }
+        for (int i = 0; i < inventorySize; i++)
+        {
             if (inventory[i] == null)
             {
                 inventory[i] = new Item(theThingWeWant);
@@ -514,18 +532,7 @@ public class PlayerController : MonoBehaviour
                 pickupAudio.volume = pickupVolume;
                 pickupAudio.Play();
                 ChangeViewModel();
-                break;
-            }
-            else if (inventory[i].Stats.Name.Equals(theThingWeWant.Name)
-                && inventory[i].GetCount() < inventory[i].Stats.MaxStackSize)
-            {
-                inventory[i].IncrementCount();
-                Destroy(item);
-                dataCollector.itemsGathered++;
-                pickupAudio.clip = pickupSounds[Random.Range(0, pickupSounds.Length)];
-                pickupAudio.volume = pickupVolume;
-                pickupAudio.Play();
-                break;
+                return;
             }
         }
     }
@@ -576,6 +583,7 @@ public class PlayerController : MonoBehaviour
             {
                 hunger = maxHunger;
             }
+            // todo: final item in a stack when eaten leads to the item view model becoming deactivated, thus it doesnt play audio
             itemViewModelAudio.clip = eatSounds[Random.Range(0, eatSounds.Length)];
             itemViewModelAudio.volume = eatVolume;
             itemViewModelAudio.Play();

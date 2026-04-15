@@ -17,6 +17,7 @@ public class AnimalStateController : CreatureStateMachine
     public override void Hurt(int damage)
     {
         base.Hurt(damage);
+        // todo: death audio doesnt play because enemy gets deactivated on the same frame audio starts
         if (health <= 0)
         {
             PlayAudio(9, 9);

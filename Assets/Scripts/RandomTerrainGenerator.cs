@@ -64,6 +64,7 @@ public class RandomTerrainGenerator : MonoBehaviour
         GameObject car = GameObject.Find("Car");
         Physics.Raycast(car.transform.position + new Vector3(0, 100, 0), Vector3.down, out chosenPoint);
         car.transform.position = chosenPoint.point + Vector3.up * 2;
+        car.transform.parent = transform;
 
         GameObject axe = GameObject.Find("Axe");
         Physics.Raycast(axe.transform.position + new Vector3(0, 100, 0), Vector3.down, out chosenPoint);

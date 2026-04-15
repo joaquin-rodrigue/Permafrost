@@ -2,6 +2,10 @@
 using System.Collections.Generic;
 using UnityEngine;
 
+/// <summary>
+/// currently defunct but might be brought back to use if i ever decide I need to billboard tree sprites instead of rendering tree models in full,
+/// same with some other objects
+/// </summary>
 public class Billboard : MonoBehaviour
 {
     public Camera m_Camera;
