@@ -19,7 +19,7 @@ public class WolfAttackState : State
             //Debug.Log(target);
         }
         
-        controller.Direction = (target - controller.MyPosition).normalized;
+        controller.Direction = ((target - controller.MyPosition).normalized + (controller.PlayerPosition - controller.MyPosition).normalized).normalized;
         controller.FaceDirection();
         //controller.direction = Vector3.forward;
         if (controller.Aggression > 1)
@@ -33,7 +33,7 @@ public class WolfAttackState : State
         if (controller.Aggression > controller.AttackInterval)
         {
             target = controller.PlayerPosition;
-            controller.Direction = (target - controller.MyPosition);
+            controller.Direction = (target - controller.MyPosition).normalized;
             Debug.Log(controller.Direction);
             controller.Attack();
             controller.Aggression = 0;

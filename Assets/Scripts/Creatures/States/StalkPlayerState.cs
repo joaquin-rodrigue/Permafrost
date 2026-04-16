@@ -31,5 +31,9 @@ public class StalkPlayerState : State
     public override void OnStateEnter()
     {
         controller.CurrentSpeed = controller.StalkSpeed;
+        if (controller.GetType() == typeof(WolfStateController))
+        {
+            controller.PlayAudio(6, 8);
+        }
     }
 }

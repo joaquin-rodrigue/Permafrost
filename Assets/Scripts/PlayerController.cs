@@ -263,12 +263,13 @@ public class PlayerController : MonoBehaviour
             darknessTimer += Time.deltaTime;
             float damageVal = darknessDamageThreshold - daylight.LightValue + darknessTimer * darknessTimeMultiplier;
             Hurt(damageVal);
-            darknessAlertSound.volume = damageVal * darknessAlertVolume;
+            //darknessAlertSound.volume = damageVal * darknessAlertVolume;
+            mixer.SetFloat("DarknessVolume", damageVal * darknessAlertVolume * 50 - 60);
         }
         else
         {
             darknessTimer = 0;
-            darknessAlertSound.volume = 0;
+            mixer.SetFloat("DarknessVolume", -60);
         }
 
         // The hunger also consumes you
@@ -339,6 +340,7 @@ public class PlayerController : MonoBehaviour
         // update the UI
         ui.UpdateInventoryUI(inventory, selectedItem);
         ui.UpdateButtonPrompts(inventory[selectedItem], interactCheckPoint.transform);
+        ui.UpdateHealthUI(health, maxHealth);
         ui.UpdateHungerUI(hunger, maxHunger);
         ui.UpdateCompass(transform.rotation.eulerAngles.y);
 
@@ -509,9 +511,10 @@ public class PlayerController : MonoBehaviour
         
         for (int i = 0; i < inventorySize; i++)
         {
-            if (inventory[i].Stats.Name.Equals(theThingWeWant.Name)
+            if (inventory[i] != null && inventory[i].Stats.Name.Equals(theThingWeWant.Name)
                 && inventory[i].GetCount() < inventory[i].Stats.MaxStackSize)
             {
+                Debug.Log("found item at spot " + i);
                 inventory[i].IncrementCount();
                 Destroy(item);
                 dataCollector.itemsGathered++;
@@ -525,6 +528,7 @@ public class PlayerController : MonoBehaviour
         {
             if (inventory[i] == null)
             {
+                Debug.Log("found open spot at " + i);
                 inventory[i] = new Item(theThingWeWant);
                 Destroy(item);
                 dataCollector.itemsGathered++;

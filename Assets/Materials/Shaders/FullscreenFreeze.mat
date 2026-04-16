@@ -46,7 +46,7 @@ Material:
     - _Fullscreen_SrcAlphaBlend: 1
     - _Fullscreen_SrcColorBlend: 5
     - _Intensity: 1
-    - _Power: 9.9748
+    - _Power: 10.000806
     m_Colors:
     - _Color: {r: 0.41960785, g: 0.20784314, b: 0.21458136, a: 1}
   m_BuildTextureStacks: []

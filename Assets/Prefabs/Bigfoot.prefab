@@ -92,6 +92,13 @@ MonoBehaviour:
   - {fileID: 8300000, guid: be0e8fbd71f416741b2d8e4d0cf55ea9, type: 3}
   - {fileID: 8300000, guid: 610d343e61b740046a968c2000dbf4be, type: 3}
   - {fileID: 8300000, guid: 54ec85f48c848104a8e251c8eda2fdef, type: 3}
+  - {fileID: 8300000, guid: 6f9f218b38fc42e4e80b0736a68d8591, type: 3}
+  - {fileID: 8300000, guid: 579862a4723329e42982d72491315911, type: 3}
+  - {fileID: 8300000, guid: 29d13065faa2a0240ae1a6d5655ea544, type: 3}
+  - {fileID: 8300000, guid: 2ae418ae87bd8b340a6ee590fc307ef5, type: 3}
+  - {fileID: 8300000, guid: 967b3e85d876bbf42b364234af5aa434, type: 3}
+  - {fileID: 8300000, guid: d6795daedcea30c42beaae0f74114566, type: 3}
+  - {fileID: 8300000, guid: 7e61366a35f190b4090ecb5939001bda, type: 3}
   anim: {fileID: 9081753626319138682}
   Direction: {x: 0, y: 0, z: 0}
   CurrentSpeed: 0

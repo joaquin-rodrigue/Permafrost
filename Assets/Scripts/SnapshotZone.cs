@@ -10,12 +10,12 @@ public class SnapshotZone : MonoBehaviour
 
     void OnTriggerEnter(Collider other)
     {
-        inside.TransitionTo(transitionTime);
+        if (inside != null) inside.TransitionTo(transitionTime);
     }
 
     void OnTriggerExit(Collider other)
     {
-        outside.TransitionTo(transitionTime);
+        if (outside != null) outside.TransitionTo(transitionTime);
     }
 
     public void StartMenuSound()

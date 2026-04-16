@@ -91,7 +91,16 @@ MonoBehaviour:
   drop: {fileID: 2378287371582904568, guid: b7ceeb9df7790c64c90a42ae456c2277, type: 3}
   model: {fileID: 6051037421082943734}
   hitbox: {fileID: 8995894738438556089}
-  soundEffects: []
+  soundEffects:
+  - {fileID: 8300000, guid: a47f8c81c05cef345b09953cac8b1678, type: 3}
+  - {fileID: 8300000, guid: b9b514b0b7b77184db41a7e2a68065cd, type: 3}
+  - {fileID: 8300000, guid: 1f3a66ef563b75a4cbe11b7100d17c09, type: 3}
+  - {fileID: 8300000, guid: c70a4ba0a3456f543a2f2f0ddb3cc129, type: 3}
+  - {fileID: 8300000, guid: 2ce9606c8bfe3fc4c888cc885ebae4d2, type: 3}
+  - {fileID: 8300000, guid: 0b268e087b13b0148bb8a9b29d98390b, type: 3}
+  - {fileID: 8300000, guid: 3393c819af7787f48b31aabcd65a5a3e, type: 3}
+  - {fileID: 8300000, guid: bbb6ac51e784bb047ba1192e6287384a, type: 3}
+  - {fileID: 8300000, guid: ff402a1627426944e8796f6305a93f25, type: 3}
   anim: {fileID: 6605628863631469064}
   Direction: {x: 0, y: 0, z: 0}
   CurrentSpeed: 0
@@ -155,7 +164,7 @@ AudioSource:
     m_Curve:
     - serializedVersion: 3
       time: 0
-      value: 0
+      value: 1
       inSlope: 0
       outSlope: 0
       tangentMode: 0

@@ -101,6 +101,7 @@ public class CreatureStateMachine : MonoBehaviour
     public void SetState(State state)
     {
         currentState?.OnStateExit();
+        Debug.Log(this.name + " is moving to " + state.ToString());
         currentState = state;
         currentState?.OnStateEnter();
     }
@@ -113,7 +114,7 @@ public class CreatureStateMachine : MonoBehaviour
     public virtual void PlayAudio(int min, int max)
     {
         sfx.clip = soundEffects[Random.Range(min, max)];
-        sfx.Play();
+        if (sfx.clip != null) sfx.Play();
     }
 
     /// <summary>
