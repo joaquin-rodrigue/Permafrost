@@ -507,7 +507,10 @@ public class PlayerController : MonoBehaviour
     // Adds an item to the inventory in the first available slot
     private void PickUpItem(GameObject item)
     {
-        ItemAttributes theThingWeWant = item.GetComponent<Pickupable>().Item;
+        Pickupable pickup = item.GetComponent<Pickupable>();
+        if (pickup.Collected) return;
+        pickup.Collect();
+        ItemAttributes theThingWeWant = pickup.Item;
         
         for (int i = 0; i < inventorySize; i++)
         {

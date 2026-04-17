@@ -73,7 +73,7 @@ public class CreatureStateMachine : MonoBehaviour
         sfx = GetComponent<AudioSource>();
     }
 
-    private void Update()
+    private void FixedUpdate()
     {
         currentState.CheckTransitions();
         currentState.Act();

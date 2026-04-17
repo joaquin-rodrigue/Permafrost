@@ -6,6 +6,7 @@ public class Pickupable : MonoBehaviour
     [SerializeField] private ItemAttributes item;
     private Collider pickupTrigger;
     private float pickupLockout;
+    public bool Collected { get; private set; } = false;
 
     private void Awake()
     {
@@ -20,6 +21,11 @@ public class Pickupable : MonoBehaviour
         }
         pickupTrigger.enabled = false;
         pickupLockout = 1.5f;
+    }
+
+    public void Collect()
+    {
+        Collected = true;
     }
 
     private void Update()
