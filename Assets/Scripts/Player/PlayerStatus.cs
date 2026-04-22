@@ -8,6 +8,7 @@ namespace Permafrost.Player
     /// For health related reasons, also keeps track of whether the player is
     /// in darkness and drains health while so.
     /// </summary>
+    [RequireComponent(typeof(PlayerController))]
     public class PlayerStatus : MonoBehaviour
     {
         #region Data
@@ -47,11 +48,15 @@ namespace Permafrost.Player
         public float DarknessTimer { get; private set; }
         public bool IsInLight { get; private set; }
 
+        [Header("Temperature")]
+        [SerializeField] private float TODO;
+
         [Header("Component References")]
         [SerializeField] private DayNightCycle dayNightCycle;
         //[SerializeField] private GameMaster gameMaster;
-        [SerializeField] private PlayerController playerController;
         [SerializeField] private UIController uiController;
+
+        private PlayerController playerController;
 
         [Header("Debug")]
         [SerializeField] private bool debugEnabled;
@@ -61,6 +66,8 @@ namespace Permafrost.Player
         // Setup
         private void Awake()
         {
+            playerController = GetComponent<PlayerController>();
+
             CurrentHealth = maxHealth;
             CurrentHunger = maxHunger;
             maxToRegenThresholdDiff = maxHunger - hungerRegenThreshold;
