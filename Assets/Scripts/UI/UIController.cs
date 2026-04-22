@@ -314,6 +314,11 @@ public class UIController : MonoBehaviour
         SceneManager.LoadScene(0);
     }
 
+    private void OnDestroy()
+    {
+        healthVignette.SetFloat("_Power", 10);
+    }
+
     // Deactivate the pause menu UI
     public void DeactivatePauseMenu()
     {
