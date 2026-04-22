@@ -250,7 +250,8 @@ GameObject:
   m_Component:
   - component: {fileID: 585935004}
   - component: {fileID: 585935005}
-  m_Layer: 0
+  - component: {fileID: 585935006}
+  m_Layer: 3
   m_Name: GroundCheck
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -292,7 +293,27 @@ BoxCollider:
   m_Enabled: 1
   serializedVersion: 3
   m_Size: {x: 0.5, y: 0.5, z: 0.5}
-  m_Center: {x: 0, y: -0.75, z: 0}
+  m_Center: {x: 0, y: -0.751, z: 0}
+--- !u!114 &585935006
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 585935003}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 163edb8a421e3de49883ceb2015b62e8, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  groundLayers:
+    serializedVersion: 2
+    m_Bits: 193
+  restingDistanceFromGround: 1
+  minDistanceToBeGrounded: 0
+  coyoteTime: 0.15
+  groundCollider: {fileID: 585935005}
+  debugEnabled: 0
 --- !u!1 &720147984
 GameObject:
   m_ObjectHideFlags: 0
@@ -305,7 +326,7 @@ GameObject:
   - component: {fileID: 720147986}
   - component: {fileID: 720147985}
   - component: {fileID: 720147988}
-  m_Layer: 0
+  m_Layer: 3
   m_Name: PlayerCamera
   m_TagString: MainCamera
   m_Icon: {fileID: 0}
@@ -552,7 +573,10 @@ GameObject:
   - component: {fileID: 1408028816}
   - component: {fileID: 1408028818}
   - component: {fileID: 1408028817}
-  m_Layer: 0
+  - component: {fileID: 1408028821}
+  - component: {fileID: 1408028820}
+  - component: {fileID: 1408028819}
+  m_Layer: 3
   m_Name: Player
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -640,6 +664,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   walkSpeed: 5
+  crouchSpeed: 3
   sprintSpeed: 10
   jumpForce: 8
   fastFallAcceleration: 1
@@ -647,6 +672,8 @@ MonoBehaviour:
   inputPressedThreshold: 0.5
   lookSensitivity: 2
   lookSmoothing: 1.5
+  dayNightCycle: {fileID: 0}
+  groundChecker: {fileID: 585935006}
   cameraTransform: {fileID: 720147987}
   inputActions: {fileID: -944628639613478452, guid: 052faaac586de48259a63d0c4782560b, type: 3}
   moveAction: {fileID: -1680190386980627800, guid: 052faaac586de48259a63d0c4782560b, type: 3}
@@ -693,6 +720,95 @@ MonoBehaviour:
   m_DefaultActionMap: Player
   m_SplitScreenIndex: -1
   m_Camera: {fileID: 0}
+--- !u!114 &1408028819
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1408028811}
+  m_Enabled: 0
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 74f96a23e6b4c7649be773367f2dfd47, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  maxHealth: 100
+  invulnerabilityTime: 0.35
+  fullHungerRegen: 0.1
+  maxHunger: 100
+  starveDamage: 0.05
+  hungerRegenThreshold: 90
+  regenHungerDrainRatio: 1.5
+  passiveHungerLoss: 0.003
+  sprintHungerLoss: 0.009
+  darknessDamageThreshold: 0.25
+  darknessTimeMultiplier: 0.1
+  TODO: 0
+  dayNightCycle: {fileID: 0}
+  uiController: {fileID: 0}
+  debugEnabled: 0
+--- !u!114 &1408028820
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1408028811}
+  m_Enabled: 0
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e8b6da0c084306b47bf7e0e7aacef64b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  footstepAudio: {fileID: 0}
+  heldItemAudio: {fileID: 0}
+  onHitAudio: {fileID: 0}
+  pickupAudio: {fileID: 0}
+  temperatureAudio: {fileID: 0}
+  snowFootstepSetup:
+    volume: 0
+    sounds: []
+  distanceBetweenFootprints: 0
+  eatingSetup:
+    volume: 0
+    sounds: []
+  meleeSwingSetup:
+    volume: 0
+    sounds: []
+  woodHitSetup:
+    volume: 0
+    sounds: []
+  creatureHitSetup:
+    volume: 0
+    sounds: []
+  pickupSetup:
+    volume: 0
+    sounds: []
+  coldTemperatureSetup:
+    volume: 0
+    sounds: []
+  coldSoundThreshold: 0
+  audioMixer: {fileID: 0}
+  playerStatus: {fileID: 0}
+  pausedMuffleThreshold: 0
+  universalMuffleThreshold: 0
+--- !u!114 &1408028821
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1408028811}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 658113d07c5003b4084325fc32bff159, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  inventorySize: 9
+  useItemCooldown: 0.25
+  dropItemCooldown: 0.25
+  dropItemCooldownModifier: 0.95
+  playerController: {fileID: 1408028817}
+  debugEnabled: 0
 --- !u!1 &1909610644
 GameObject:
   m_ObjectHideFlags: 0
@@ -704,7 +820,7 @@ GameObject:
   - component: {fileID: 1909610645}
   - component: {fileID: 1909610647}
   - component: {fileID: 1909610646}
-  m_Layer: 0
+  m_Layer: 3
   m_Name: Model
   m_TagString: Untagged
   m_Icon: {fileID: 0}

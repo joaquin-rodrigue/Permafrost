@@ -1,3 +1,4 @@
+using Permafrost.Utilities;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
@@ -36,7 +37,7 @@ namespace Permafrost.Player
         [Header("Component References")]
         [SerializeField] private DayNightCycle dayNightCycle;
         //[SerializeField] private GameMaster gameMaster;
-        //[SerializeField] private GroundCheck groundChecker;
+        [SerializeField] private GroundChecker groundChecker;
         //[SerializeField] private PlayerInventory inventory;
         [SerializeField] private Transform cameraTransform;
         //[SerializeField] private UIController uiController;
@@ -222,7 +223,7 @@ namespace Permafrost.Player
                 rb.AddRelativeForce(fastFall, ForceMode.Impulse);
             }
             
-            if (JumpPressed /*&& groundCheck.CanJump*/)
+            if (JumpPressed /*&& groundChecker.CanJump*/)
             {
                 Vector3 jumpVelocity = new(0, jumpForce, 0);
                 rb.linearVelocity = new Vector3(rb.linearVelocity.x, 0, rb.linearVelocity.z);
