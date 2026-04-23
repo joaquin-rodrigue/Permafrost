@@ -9,6 +9,7 @@ public class StalkPlayerState : State
         controller.Direction = (controller.PlayerPosition - controller.MyPosition).normalized;
         controller.FaceDirection();
         controller.Move();
+        if (Random.value < 0.1f * Time.fixedDeltaTime) controller.PlayAudio(0, 4);
     }
 
     public override void CheckTransitions()

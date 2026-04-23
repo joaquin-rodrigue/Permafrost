@@ -8,6 +8,7 @@ TagManager:
   - Inventory Slot
   - Tree
   - PlayerWeapon
+  - GlobalMusic
   layers:
   - Default
   - TransparentFX

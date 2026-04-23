@@ -10,12 +10,22 @@ public class SnapshotZone : MonoBehaviour
 
     void OnTriggerEnter(Collider other)
     {
-        if (inside != null) inside.TransitionTo(transitionTime);
+        if (!other.CompareTag("Player")) return;
+        if (inside != null)
+        {
+            inside.TransitionTo(transitionTime);
+            //Debug.Log("transition to " + inside + " " + gameObject);
+        }
     }
 
     void OnTriggerExit(Collider other)
     {
-        if (outside != null) outside.TransitionTo(transitionTime);
+        if (!other.CompareTag("Player")) return;
+        if (outside != null)
+        {
+            outside.TransitionTo(transitionTime);
+            //Debug.Log("transition to " + outside);
+        }
     }
 
     public void StartMenuSound()

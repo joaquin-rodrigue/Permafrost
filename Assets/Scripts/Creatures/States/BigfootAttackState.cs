@@ -49,10 +49,12 @@ public class BigfootAttackState : State
         controller.CurrentSpeed = controller.RunSpeed;
         controller.Aggression = ((BigfootStateController) controller).AggressionLimit;
         ((BigfootStateController) controller).HeRoar();
+        GameObject.FindGameObjectWithTag("GlobalMusic").GetComponent<GlobalMusic>().SetFastVolume(0);
     }
 
     public override void OnStateExit()
     {
         ((BigfootStateController) controller).TimeSinceAttackLeave = 0;
+        GameObject.FindGameObjectWithTag("GlobalMusic").GetComponent<GlobalMusic>().SetFastVolume(-40);
     }
 }
