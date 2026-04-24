@@ -669,6 +669,7 @@ MonoBehaviour:
   jumpForce: 8
   fastFallAcceleration: 1
   moveAcceleration: 1.5
+  crouchAnimationSpeed: 4
   inputPressedThreshold: 0.5
   lookSensitivity: 2
   lookSmoothing: 1.5

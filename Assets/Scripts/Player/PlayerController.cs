@@ -1,4 +1,5 @@
 using Permafrost.Utilities;
+using System.Collections;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
@@ -22,6 +23,8 @@ namespace Permafrost.Player
         [SerializeField] private float fastFallAcceleration = 1f;
         [Tooltip("An acceleration factor for moving the player; the higher it is the faster the player reaches their target speed.")]
         [SerializeField] private float moveAcceleration = 1.5f;
+        [Tooltip("TODO: to be moved to the PlayerAnimator. If I ever get done with that.")]
+        [SerializeField] private float crouchAnimationSpeed = 1f;
         [Tooltip("Threshold for held inputs to be considered held. Really only affects gamepad trigger inputs.")]
         [SerializeField] private float inputPressedThreshold = 0.5f;
 
@@ -33,6 +36,8 @@ namespace Permafrost.Player
         [SerializeField] private float lookSmoothing = 1.5f;
 
         private float currentSensitivity;
+        private bool crouchRoutineActive = false;
+        private int crouchRoutinesWaiting = 0;
 
         [Header("Component References")]
         [SerializeField] private DayNightCycle dayNightCycle;
@@ -43,6 +48,7 @@ namespace Permafrost.Player
         //[SerializeField] private UIController uiController;
         //[SerializeField] private PlayerHeldItemController viewModelController;
 
+        private CapsuleCollider collision;
         private Rigidbody rb;
         private PlayerInput input;
 
@@ -92,6 +98,7 @@ namespace Permafrost.Player
         // Setup
         private void Awake()
         {
+            collision = GetComponent<CapsuleCollider>();
             input = GetComponent<PlayerInput>();
             rb = GetComponent<Rigidbody>();
 
@@ -187,6 +194,8 @@ namespace Permafrost.Player
                     rb.linearVelocity.y,
                     targetVelocity.z),
                 factor);
+
+            // todo: ground snapping using the groundChecker data
             
             if (debugEnabled)
             {
@@ -223,7 +232,7 @@ namespace Permafrost.Player
                 rb.AddRelativeForce(fastFall, ForceMode.Impulse);
             }
             
-            if (JumpPressed /*&& groundChecker.CanJump*/)
+            if (JumpPressed && groundChecker.CanJump)
             {
                 Vector3 jumpVelocity = new(0, jumpForce, 0);
                 rb.linearVelocity = new Vector3(rb.linearVelocity.x, 0, rb.linearVelocity.z);
@@ -244,18 +253,82 @@ namespace Permafrost.Player
 
         /// <summary>
         /// Enters crouch mode.
+        /// This is entirely placeholder until the player animator is done.
         /// </summary>
-        private void CrouchBegin()
+        private IEnumerator Crouch()
         {
-            Debug.Log("todo");
+            // just a way to buffer an uncrouch/crouch without
+            // letting more than one buffer up in a row and create an
+            // endless crouch/uncrouch loop from spamming
+            if (crouchRoutinesWaiting > 1) yield break;
+            crouchRoutinesWaiting++;
+            while (crouchRoutineActive) yield return new WaitForFixedUpdate();
+            crouchRoutinesWaiting--;
+            Debug.Log("todo: temp crouch routine without animation");
+
+            // animation!
+            crouchRoutineActive = true;
+            Vector3 center = Vector3.zero;
+            Vector3 cam = cameraTransform.localPosition;
+
+            for (float i = 0; i < 1; i += Time.fixedDeltaTime * crouchAnimationSpeed)
+            {
+                collision.height = 2 - i;
+                center.y = -i / 2;
+                collision.center = center;
+                cam.y = -i * (3f / 4f) + 0.5f;
+                cameraTransform.localPosition = cam;
+                yield return new WaitForFixedUpdate();
+            }
+
+            // this part because float timers suck and we aren't 
+            // guaranteed to hit the min
+            // Not a siginificant issue, this code is going to go away
+            // once the player animator is done and exists but oh well
+            collision.height = 1;
+            center.y = -0.5f;
+            collision.center = center;
+            cam.y = -0.25f;
+            cameraTransform.localPosition = cam;
+            crouchRoutineActive = false;
         }
 
         /// <summary>
         /// Exits crouch mode.
         /// </summary>
-        private void CrouchEnd()
+        private IEnumerator UnCrouch()
         {
-            Debug.Log("todo");
+            // just a way to buffer an uncrouch/crouch without
+            // letting more than one buffer up in a row and create an
+            // endless crouch/uncrouch loop from spamming
+            if (crouchRoutinesWaiting > 1) yield break;
+            crouchRoutinesWaiting++;
+            while (crouchRoutineActive) yield return new WaitForFixedUpdate();
+            crouchRoutinesWaiting--;
+            Debug.Log("todo: temp crouch routine without animation");
+
+            // animate
+            crouchRoutineActive = true;
+            Vector3 center = new(0, -0.5f, 0);
+            Vector3 cam = cameraTransform.localPosition;
+
+            for (float i = 0; i < 1; i += Time.fixedDeltaTime * crouchAnimationSpeed)
+            {
+                collision.height = 1 + i;
+                center.y = i / 2 - 0.5f;
+                collision.center = center;
+                cam.y = i * (3f / 4f) - 0.25f;
+                cameraTransform.localPosition = cam;
+                yield return new WaitForFixedUpdate();
+            }
+
+            // fix it
+            collision.height = 2;
+            center.y = 0;
+            collision.center = center;
+            cam.y = 0.5f;
+            cameraTransform.localPosition = cam;
+            crouchRoutineActive = false;
         }
         #endregion
 
@@ -280,13 +353,13 @@ namespace Permafrost.Player
         private void OnCrouchInputEnter(InputAction.CallbackContext ctx)
         {
             Crouching = ctx.ReadValue<float>() > inputPressedThreshold;
-            if (Crouching) CrouchBegin();
-            else CrouchEnd();
+            if (Crouching) StartCoroutine(Crouch());
+            else StartCoroutine(UnCrouch());
         }
         private void OnCrouchInputExit(InputAction.CallbackContext ctx)
         {
             Crouching = false;
-            CrouchEnd();
+            StartCoroutine(UnCrouch());
         }
         private void OnAttackInputEnter(InputAction.CallbackContext ctx)
         {
