@@ -4996,7 +4996,7 @@ GameObject:
   - component: {fileID: 597798117}
   - component: {fileID: 597798116}
   m_Layer: 5
-  m_Name: LeftClick
+  m_Name: RightClick
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -5041,7 +5041,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 21300000, guid: ac6565d407d404349a823188c2464021, type: 3}
+  m_Sprite: {fileID: 21300000, guid: 5872618d1c3ff524288f33c4e4bc43f8, type: 3}
   m_Type: 0
   m_PreserveAspect: 0
   m_FillCenter: 1
@@ -13481,7 +13481,7 @@ GameObject:
   - component: {fileID: 1836263247}
   - component: {fileID: 1836263246}
   m_Layer: 5
-  m_Name: RightClick
+  m_Name: LeftClick
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -13526,7 +13526,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 21300000, guid: 5872618d1c3ff524288f33c4e4bc43f8, type: 3}
+  m_Sprite: {fileID: 21300000, guid: ac6565d407d404349a823188c2464021, type: 3}
   m_Type: 0
   m_PreserveAspect: 0
   m_FillCenter: 1

@@ -8,7 +8,11 @@ public class BigfootAttackState : State
     public override void Act()
     {
         BigfootStateController bcontroller = (BigfootStateController) controller;
-        if (bcontroller.IsHeRoaring) return;
+        if (bcontroller.IsHeRoaring)
+        {
+            bcontroller.DontMove();
+            return;
+        }
         float distance = Vector3.Distance(bcontroller.MyPosition, bcontroller.PlayerPosition);
         Debug.Log(distance);
         bcontroller.Direction = (bcontroller.PlayerPosition - bcontroller.MyPosition).normalized;

@@ -108,11 +108,11 @@ MonoBehaviour:
   behindPlayerAngleTolerance: 80
   staringAngleTolerance: 8
   maxStalkingDistance: 70
-  attackTimeLimit: 10
+  attackTimeLimit: 30
   attackStateCooldown: 45
-  onHitAggroBoost: 20
-  lightCheckInterval: 40
-  lightAggroIncrease: 0.1
+  onHitAggroBoost: 45
+  lightCheckInterval: 20
+  lightAggroIncrease: 0.2
   TargetLightSource: {fileID: 0}
   TimeSinceLightCheck: 0
   TimeSinceAttackLeave: 0
