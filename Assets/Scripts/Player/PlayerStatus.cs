@@ -53,7 +53,7 @@ namespace Permafrost.Player
 
         [Header("Component References")]
         [SerializeField] private DayNightCycle dayNightCycle;
-        //[SerializeField] private GameMaster gameMaster;
+        [SerializeField] private GameMaster gameMaster;
         [SerializeField] private UIController uiController;
 
         private PlayerController playerController;
@@ -82,7 +82,7 @@ namespace Permafrost.Player
         // Update the stuff
         private void FixedUpdate()
         {
-            //if (gameMaster.GamePaused) return;
+            if (gameMaster.GamePaused) return;
 
             HungerUpdate();
             DarknessUpdate();

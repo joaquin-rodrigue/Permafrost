@@ -39,11 +39,13 @@ namespace Permafrost.Player
         private bool crouchRoutineActive = false;
         private int crouchRoutinesWaiting = 0;
 
+        public float YLookAngle { get; private set; }
+
         [Header("Component References")]
         [SerializeField] private DayNightCycle dayNightCycle;
-        //[SerializeField] private GameMaster gameMaster;
+        [SerializeField] private GameMaster gameMaster;
         [SerializeField] private GroundChecker groundChecker;
-        //[SerializeField] private PlayerInventory inventory;
+        [SerializeField] private PlayerInventory inventory;
         [SerializeField] private Transform cameraTransform;
         //[SerializeField] private UIController uiController;
         //[SerializeField] private PlayerHeldItemController viewModelController;
@@ -158,7 +160,7 @@ namespace Permafrost.Player
         // Runs the physics update.
         private void FixedUpdate()
         {
-            //if (gameMaster.GamePaused) return;
+            if (gameMaster.GamePaused) return;
             if (PauseInput)
             {
                 // ---------- TODO: pausing ----------
@@ -216,7 +218,8 @@ namespace Permafrost.Player
                 currentLookVelocity += frameLookVelocity;
                 currentLookVelocity.y = Mathf.Clamp(currentLookVelocity.y, -90, 90);
             }
-            cameraTransform.localRotation = Quaternion.AngleAxis(-currentLookVelocity.y, Vector3.right);
+            //cameraTransform.localRotation = Quaternion.AngleAxis(-currentLookVelocity.y, Vector3.right);
+            YLookAngle = currentLookVelocity.y;
             transform.localRotation = Quaternion.AngleAxis(currentLookVelocity.x, Vector3.up);
         }
 

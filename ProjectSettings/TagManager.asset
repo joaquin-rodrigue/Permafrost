@@ -8,6 +8,7 @@ TagManager:
   - Inventory Slot
   - Tree
   - PlayerWeapon
+  - TerrainGenerator
   layers:
   - Default
   - TransparentFX

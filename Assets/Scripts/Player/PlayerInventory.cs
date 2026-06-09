@@ -33,7 +33,7 @@ namespace Permafrost.Player
         public bool ItemSwitchingActive { get; set; }
 
         [Header("Component References")]
-        //[SerializeField] private GameMaster gameMaster;
+        [SerializeField] private GameMaster gameMaster;
         [SerializeField] private PlayerController playerController;
 
         [Header("Debug")]
@@ -50,7 +50,7 @@ namespace Permafrost.Player
         // Update
         private void FixedUpdate()
         {
-            //if (gameMaster.GamePaused) return;
+            if (gameMaster.GamePaused) return;
             ItemUpdate();
             UseItem();
             DropItem();

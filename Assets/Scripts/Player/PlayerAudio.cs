@@ -52,8 +52,8 @@ namespace Permafrost.Player
 
         [Header("Component References")]
         [SerializeField] private AudioMixer audioMixer;
-        //[SerializeField] private GameMaster gameMaster;
-        //[SerializeField] private GroundCheck groundCheck;
+        [SerializeField] private GameMaster gameMaster;
+        [SerializeField] private GroundCheck groundCheck;
         [SerializeField] private PlayerStatus playerStatus;
 
         private PlayerController playerController;
@@ -78,7 +78,7 @@ namespace Permafrost.Player
         // Updating
         private void FixedUpdate()
         {
-            //if (gameMaster.GamePaused) { audioMixer.SetFloat("PauseMuffle", pauseMuffleThreshold); return; }
+            if (gameMaster.GamePaused) { audioMixer.SetFloat("PauseMuffle", pausedMuffleThreshold); return; }
 
             audioMixer.SetFloat("PauseMuffle", universalMuffleThreshold);
             FootprintUpdate();

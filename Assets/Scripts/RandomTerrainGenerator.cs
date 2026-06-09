@@ -26,7 +26,6 @@ public class RandomTerrainGenerator : MonoBehaviour
     [SerializeField] private TerrainLayer mat;
     [SerializeField] private Material mat2;
 
-
     // Starts the generation and stuff
     void Start()
     {

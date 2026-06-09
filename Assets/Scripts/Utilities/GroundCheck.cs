@@ -52,6 +52,11 @@ namespace Permafrost.Utilities
             Grounded = DistanceToGround < minDistanceToBeGrounded;
             coyoteJumpTimer = Grounded ? 0 : coyoteJumpTimer + Time.fixedDeltaTime;
             CanJump = Grounded || coyoteJumpTimer < coyoteTime;
+
+            if (debugEnabled)
+            {
+                Debug.Log($"[GroundCheck] distance: {DistanceToGround}, grounded: {Grounded}, can jump: {CanJump}");
+            }
         }
 
         private void OnCollisionEnter(Collision collision)
