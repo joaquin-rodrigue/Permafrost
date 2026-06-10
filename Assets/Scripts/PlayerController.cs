@@ -6,6 +6,8 @@ using UnityEngine.InputSystem;
 using Unity.VisualScripting;
 using UnityEngine.Audio;
 
+using Permafrost.World; // bandaid fix to allow the game to compile while this is deprecated
+
 /// <summary>
 ///     The controller for the player. Includes code for handling all player controls, player health
 ///     and hunger, player inventory code, item usage and special code relating to collision.

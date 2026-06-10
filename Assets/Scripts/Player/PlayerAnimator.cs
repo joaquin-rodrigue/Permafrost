@@ -5,18 +5,13 @@ namespace Permafrost.Player
     /// <summary>
     /// 
     /// </summary>
-    /// <remarks>
-    /// This code was designed with Blender rigs in mind; Blender by default
-    /// has different rotations for most things. Joints are generally rotated
-    /// 90 degrees differently to what you would expect; z isn't the forward
-    /// axis, its the right axis.
-    /// </remarks>
     public class PlayerAnimator : MonoBehaviour
     {
         [Header("Joint References")]
+        [Tooltip("More specifically, the transform for moving the player's camera. This name is kinda misleading.")]
         [SerializeField] private Transform neckJoint;
 
-        private float baseNeckRotation;
+        //private float baseNeckRotation;
 
         //[Header("Animations")]
 
@@ -25,14 +20,15 @@ namespace Permafrost.Player
 
         private void Awake()
         {
-            baseNeckRotation = neckJoint.localRotation.eulerAngles.z;
+            //baseNeckRotation = neckJoint.localRotation.eulerAngles.y;
         }
 
         // Update is called once per frame
         void FixedUpdate()
         {
             // neck rotation
-            neckJoint.localRotation = Quaternion.AngleAxis(-playerController.YLookAngle + baseNeckRotation, Vector3.forward);
+            neckJoint.localRotation = Quaternion.Euler(-playerController.YLookAngle, -90, 0);
+            //neckJoint.localRotation = Quaternion.AngleAxis(-playerController.YLookAngle /*+ baseNeckRotation*/, Vector3.right);
         }
     }
 }
