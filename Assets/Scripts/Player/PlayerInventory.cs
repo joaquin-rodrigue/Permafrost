@@ -1,3 +1,5 @@
+using Permafrost.Items;
+
 using System.Collections;
 using UnityEngine;
 
@@ -71,7 +73,7 @@ namespace Permafrost.Player
                 ItemAttributes stats = inventory[i].Stats;
 
                 Debug.LogWarning("todo: item update function in item class");
-                //SelectedItem.Update();
+                SelectedItem.Update(this);
             }
         }
         
@@ -85,7 +87,7 @@ namespace Permafrost.Player
             if (!playerController.UsingItem || !CanUseItem) return;
 
             StartCoroutine(UseItemCooldown());
-            bool shouldDecreaseItemCount = true; //SelectedItem.Use();
+            bool shouldDecreaseItemCount = SelectedItem.Use(this);
             if (shouldDecreaseItemCount) DecrementSelectedItemCount();
         }
 
@@ -130,7 +132,7 @@ namespace Permafrost.Player
             }
 
             StartCoroutine(DropItemCooldown());
-            //itemLibrary.CreatePhysicalItem(SelectedItem, transform);
+            GameObject theItem = Instantiate(SelectedItem.Stats.Prefab, transform.position + transform.forward, Quaternion.identity);
             DecrementSelectedItemCount();
         }
 
@@ -245,7 +247,7 @@ namespace Permafrost.Player
             // try add item to existing stack
             for (int i = 0; i < inventorySize; i++)
             {
-                //if (!inventory[i].SameStackAs(item)) continue;
+                if (!inventory[i].SameStackAs(item)) continue;
                 if (inventory[i].GetCount() >= inventory[i].Stats.MaxStackSize) continue;
 
                 inventory[i].IncrementCount();
@@ -259,7 +261,7 @@ namespace Permafrost.Player
             {
                 if (inventory[i] != null) continue;
 
-                //inventory[i] = new Item(item);
+                inventory[i] = new Item(item);
                 Debug.LogWarning("todo: item pickup stuff?");
                 AvailableInventorySlots--;
                 return true;

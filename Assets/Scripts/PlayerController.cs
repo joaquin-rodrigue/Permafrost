@@ -7,6 +7,7 @@ using Unity.VisualScripting;
 using UnityEngine.Audio;
 
 using Permafrost.World; // bandaid fix to allow the game to compile while this is deprecated
+using Permafrost.Items; // also a bandaid fix
 
 /// <summary>
 ///     The controller for the player. Includes code for handling all player controls, player health

@@ -1,5 +1,7 @@
 using UnityEngine;
 
+using Permafrost.Items;
+
 [RequireComponent(typeof(Collider))]
 public class Pickupable : MonoBehaviour
 {

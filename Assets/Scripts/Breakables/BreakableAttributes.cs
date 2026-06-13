@@ -1,5 +1,7 @@
 using UnityEngine;
 
+using Permafrost.Items;
+
 /// <summary>
 ///     Set of stats/attributes for a Breakable game object.
 /// </summary>

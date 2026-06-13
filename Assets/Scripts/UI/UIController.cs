@@ -4,6 +4,8 @@ using UnityEngine.UI;
 using System.Collections;
 using UnityEngine.SceneManagement;
 
+using Permafrost.Items; // bandaid fix so we can compile during the refactor
+
 /// <summary>
 ///     Enum to help keep track of what menu is active. Better than just using bools lol
 /// </summary>
