@@ -33,10 +33,17 @@ namespace Permafrost.Items
         [Header("Consumables")]
         public int FoodHungerRestore;
         public int HealthRestore;
+        public float HealthRegenerationTime;
+        public float HealthRegenerationSpeed;
         public int BurnableFuelValue;
+        public int BurnableFuelStrength;
 
         [Header("Tools")]
         public int BreakingStrength;
+        public WearableType WearableItemType;
+        public float WearableDamageModifier;
+        public float WearableTemperatureLossModifier;
+        public float WearableSpeedModifier;
 
         [Header("Lights")]
         public int LightDurability;

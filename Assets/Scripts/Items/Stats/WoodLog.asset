@@ -15,7 +15,26 @@ MonoBehaviour:
   Type: 8
   Name: Log
   MaxStackSize: 8
+  Prefab: {fileID: 152371615304991051, guid: f8d2b5246c651304e99e3fae935593d3, type: 3}
+  ViewModel: {fileID: -5076798556035486163, guid: 43c2dc596e45f7d459ea5bcc444e39c0, type: 3}
+  ViewModelMaterial: {fileID: 2100000, guid: e2439b551129b9b4eb923b87ccefb580, type: 2}
+  ViewModelScale: {x: 1, y: 3, z: 1}
+  ViewModelRotation: {x: 0, y: 0, z: 0, w: 0}
+  InventoryRender: {fileID: 21300000, guid: 07de9e0498e66c949b7b48417e369613, type: 3}
+  WeaponAttack: 0
   WeaponDurability: 0
   WeaponDamage: 0
+  WeaponHungerLoss: 0
+  GunBulletType: {fileID: 0}
+  GunMagazineSize: 0
   FoodHungerRestore: 0
+  HealthRestore: 0
+  HealthRegenerationTime: 0
+  HealthRegenerationSpeed: 0
   BurnableFuelValue: 200
+  BurnableFuelStrength: 3
+  BreakingStrength: 0
+  LightDurability: 0
+  LightIntensity: 0
+  LightRange: 0
+  LightColor: {r: 0, g: 0, b: 0, a: 0}

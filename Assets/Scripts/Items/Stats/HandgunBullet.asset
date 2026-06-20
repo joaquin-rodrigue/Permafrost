@@ -13,19 +13,32 @@ MonoBehaviour:
   m_Name: HandgunBullet
   m_EditorClassIdentifier: 
   Type: 0
-  Name: Pistol Magazine
-  MaxStackSize: 10
+  Name: Pistol Bullet
+  MaxStackSize: 60
+  Prefab: {fileID: 0}
+  ViewModel: {fileID: 0}
+  ViewModelMaterial: {fileID: 0}
+  ViewModelScale: {x: 0, y: 0, z: 0}
+  ViewModelRotation: {x: 0, y: 0, z: 0, w: 0}
+  InventoryRender: {fileID: 0}
+  WeaponAttack: 0
   WeaponDurability: 0
   WeaponDamage: 0
   WeaponHungerLoss: 0
-  WeaponAttack: 0
   GunBulletType: {fileID: 0}
   GunMagazineSize: 0
   FoodHungerRestore: 0
+  HealthRestore: 0
+  HealthRegenerationTime: 0
+  HealthRegenerationSpeed: 0
   BurnableFuelValue: 0
+  BurnableFuelStrength: 0
   BreakingStrength: 0
+  WearableItemType: 0
+  WearableDamageModifier: 0
+  WearableTemperatureLossModifier: 0
+  WearableSpeedModifier: 0
   LightDurability: 0
   LightIntensity: 0
   LightRange: 0
   LightColor: {r: 0, g: 0, b: 0, a: 0}
-  HealthRestore: 0

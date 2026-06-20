@@ -15,11 +15,24 @@ MonoBehaviour:
   Type: 1
   Name: Berries
   MaxStackSize: 50
+  Prefab: {fileID: 5316183630168870492, guid: e2453740843faeb4b94464d9cf3ede8f, type: 3}
+  ViewModel: {fileID: -3218693266254596592, guid: 93ab093cb1b879c4891bacd88a0cb39b, type: 3}
+  ViewModelMaterial: {fileID: 2100000, guid: 0fbbf3423b7391742a17540507a6bae0, type: 2}
+  ViewModelScale: {x: 1, y: 1, z: 1}
+  ViewModelRotation: {x: 0, y: 0, z: 0, w: 0}
+  InventoryRender: {fileID: 21300000, guid: bb35b535193da9d42954a81b16f86f6e, type: 3}
+  WeaponAttack: 0
   WeaponDurability: 0
   WeaponDamage: 0
   WeaponHungerLoss: 0
-  FoodHungerRestore: 12
+  GunBulletType: {fileID: 0}
+  GunMagazineSize: 0
+  FoodHungerRestore: 8
+  HealthRestore: 0
+  HealthRegenerationTime: 0
+  HealthRegenerationSpeed: 0
   BurnableFuelValue: 0
+  BurnableFuelStrength: 0
   BreakingStrength: 0
   LightDurability: 0
   LightIntensity: 0

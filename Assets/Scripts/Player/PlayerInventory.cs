@@ -294,6 +294,26 @@ namespace Permafrost.Player
             AvailableInventorySlots++;
             return true;
         }
+
+        /// <summary>
+        /// Returns whether a given inventory slot has an item.
+        /// </summary>
+        /// <param name="index">The index to check for an item.</param>
+        /// <returns>True if an item is at that index, false otherwise.</returns>
+        public bool ItemAt(int index)
+        {
+            return inventory[index] != null;
+        }
+
+        /// <summary>
+        /// Returns the item at the given index.
+        /// </summary>
+        /// <param name="index">The index of the item to get.</param>
+        /// <returns>An <c>Item</c> from the given inventory slot, or null if no item is in that inventory slot.</returns>
+        public Item GetItem(int index)
+        {
+            return inventory[index];
+        }
         #endregion
     }
 }

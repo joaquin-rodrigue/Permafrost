@@ -1,0 +1,44 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 124095c94aad8114ca62a749fa860730, type: 3}
+  m_Name: Hatchet
+  m_EditorClassIdentifier: 
+  Type: 6
+  Name: Hatchet
+  MaxStackSize: 1
+  Prefab: {fileID: 0}
+  ViewModel: {fileID: 0}
+  ViewModelMaterial: {fileID: 0}
+  ViewModelScale: {x: 0, y: 0, z: 0}
+  ViewModelRotation: {x: 0, y: 0, z: 0, w: 0}
+  InventoryRender: {fileID: 0}
+  WeaponAttack: 3
+  WeaponDurability: 200
+  WeaponDamage: 5
+  WeaponHungerLoss: 0.007
+  GunBulletType: {fileID: 0}
+  GunMagazineSize: 0
+  FoodHungerRestore: 0
+  HealthRestore: 0
+  HealthRegenerationTime: 0
+  HealthRegenerationSpeed: 0
+  BurnableFuelValue: 0
+  BurnableFuelStrength: 0
+  BreakingStrength: 6
+  WearableItemType: 0
+  WearableDamageModifier: 0
+  WearableTemperatureLossModifier: 0
+  WearableSpeedModifier: 0
+  LightDurability: 0
+  LightIntensity: 0
+  LightRange: 0
+  LightColor: {r: 0, g: 0, b: 0, a: 0}

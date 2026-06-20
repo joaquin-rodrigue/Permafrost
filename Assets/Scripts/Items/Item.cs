@@ -11,12 +11,14 @@ namespace Permafrost.Items
     /// </summary>
     public enum ItemType
     {
-        Food = 0b0000000000000001,
-        Weapon = 0b0000000000000010,
-        TreeChop = 0b0000000000000100,
-        Burnable = 0b0000000000001000,
-        Light = 0b0000000000010000,
-        Heal = 0b0000000000100000,
+        Food =      0b0000000000000001,
+        Weapon =    0b0000000000000010,
+        TreeChop =  0b0000000000000100,
+        Burnable =  0b0000000000001000,
+        Light =     0b0000000000010000,
+        Heal =      0b0000000000100000,
+        WallBreak = 0b0000000001000000,
+        Wearable =  0b0000000010000000,
     }
 
     /// <summary>
@@ -25,7 +27,16 @@ namespace Permafrost.Items
     /// </summary>
     public enum WeaponType
     {
-        None, Melee, Gun
+        None, Melee, Thrown, MeleeAndThrown, Gun
+    }
+
+    /// <summary>
+    /// A simple enum for what type of wearable item an item is. None implies it's not wearable,
+    /// Body, Head and Foot should be self explanatory.
+    /// </summary>
+    public enum WearableType
+    {
+        None, Body, Head, Foot
     }
 
     /// <summary>

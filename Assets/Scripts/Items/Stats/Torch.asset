@@ -15,13 +15,30 @@ MonoBehaviour:
   Type: 16
   Name: Torch
   MaxStackSize: 1
+  Prefab: {fileID: 152371615304991051, guid: 21076e732852d7d4da287e1ee73624a9, type: 3}
+  ViewModel: {fileID: -5076798556035486163, guid: 43c2dc596e45f7d459ea5bcc444e39c0, type: 3}
+  ViewModelMaterial: {fileID: 2100000, guid: 24f4b1c22f4d9c24cae69b395bc29e33, type: 2}
+  ViewModelScale: {x: 1, y: 3, z: 1}
+  ViewModelRotation: {x: 0, y: 0, z: 0, w: 0}
+  InventoryRender: {fileID: 21300000, guid: 12ccd4fef711cdc4f97ba1b073a2c9a3, type: 3}
+  WeaponAttack: 0
   WeaponDurability: 0
   WeaponDamage: 0
   WeaponHungerLoss: 0
+  GunBulletType: {fileID: 0}
+  GunMagazineSize: 0
   FoodHungerRestore: 0
+  HealthRestore: 0
+  HealthRegenerationTime: 0
+  HealthRegenerationSpeed: 0
   BurnableFuelValue: 0
+  BurnableFuelStrength: 0
   BreakingStrength: 0
-  LightDurability: 1800
+  WearableItemType: 0
+  WearableDamageModifier: 0
+  WearableTemperatureLossModifier: 0
+  WearableSpeedModifier: 0
+  LightDurability: 400
   LightIntensity: 5
   LightRange: 15
   LightColor: {r: 1, g: 0.7529412, b: 0, a: 1}

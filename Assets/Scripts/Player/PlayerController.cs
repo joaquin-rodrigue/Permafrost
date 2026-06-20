@@ -72,6 +72,20 @@ namespace Permafrost.Player
         [SerializeField] private InputActionReference interactAction;
         [SerializeField] private InputActionReference pauseAction;
 
+        public InputBinding MoveBinding { get { return moveAction.action.bindings[0]; } }
+        public InputBinding LookBinding { get { return lookAction.action.bindings[0]; } }
+        public InputBinding SprintBinding { get { return sprintAction.action.bindings[0]; } }
+        public InputBinding JumpBinding { get { return jumpAction.action.bindings[0]; } }
+        public InputBinding CrouchBinding { get { return crouchAction.action.bindings[0]; } }
+        public InputBinding AttackBinding { get { return attackAction.action.bindings[0]; } }
+        public InputBinding UseItemBinding { get { return useItemAction.action.bindings[0]; } }
+        public InputBinding BuildItemBinding { get { return buildItemAction.action.bindings[0]; } }
+        public InputBinding DropItemBinding { get { return dropItemAction.action.bindings[0]; } }
+        public InputBinding NextItemBinding { get { return nextItemAction.action.bindings[0]; } }
+        public InputBinding PreviousItemBinding { get { return previousItemAction.action.bindings[0]; } }
+        public InputBinding InteractBinding { get { return interactAction.action.bindings[0]; } }
+        public InputBinding PauseBinding { get { return pauseAction.action.bindings[0]; } }
+
         [Header("Debug")]
         [SerializeField] private bool debugEnabled;
 
@@ -334,6 +348,42 @@ namespace Permafrost.Player
             cam.y = 0.5f;
             cameraTransform.localPosition = cam;
             crouchRoutineActive = false;
+        }
+        #endregion
+
+        #region Binding Getter 
+        /// <summary>
+        /// Tries to get an input binding relating to the given action string.
+        /// </summary>
+        /// <param name="actionName">A string containing what action/action alias to get a binding for.</param>
+        /// <returns>An <c>InputBinding</c> attached to the action.</returns>
+        public InputBinding GetInputBinding(string actionName)
+        {
+            switch (actionName)
+            {
+                case "Move": return MoveBinding;
+                case "Look": return LookBinding;
+                case "Sprint": return SprintBinding;
+                case "Jump": return JumpBinding;
+                case "Crouch": return CrouchBinding;
+                case "Attack": return AttackBinding;
+                case "Eat":
+                case "Heal":
+                case "Use Item": return UseItemBinding;
+                case "Create Fire":
+                case "Build": return BuildItemBinding;
+                case "Drop Item": return DropItemBinding;
+                case "Next Item": return NextItemBinding;
+                case "Previous Item": return PreviousItemBinding;
+                case "Interact": return InteractBinding;
+                case "Pause": return PauseBinding;
+            }
+            // last ditch effort to get a binding for the action, likely won't work
+            if (debugEnabled)
+            {
+                Debug.LogWarning($"Tried getting binding for '{actionName}', but no options found! Backup may fail...");
+            }
+            return InputBinding.MaskByGroup(actionName);
         }
         #endregion
 
