@@ -6,6 +6,13 @@ using UnityEngine;
 
 namespace Permafrost.World
 {
+    /// <summary>
+    /// TODO: object generation not completed!
+    /// TODO: store to files?
+    /// TODO: load from files?
+    /// The terrain generator's main component. Coordinates all terrain cell generation,
+    /// cell loading, cell unloading, etc.
+    /// </summary>
     [RequireComponent(typeof(SimplexGenerator))]
     public class MasterTerrainGenerator : MonoBehaviour
     {
@@ -34,6 +41,8 @@ namespace Permafrost.World
         public bool Activated { get; private set; }
 
         private SimplexGenerator noiseGenerator;
+        private TerrainFeatureGenerator featureGenerator;
+        private bool featuresActive;
 
         [Header("Debug")]
         [SerializeField] private bool debugEnabled;
@@ -60,6 +69,13 @@ namespace Permafrost.World
             }
             terrainCellSize = powerOfTwoCellSize;
             Activated = false;
+
+            // and feature gen
+            featuresActive = TryGetComponent(out featureGenerator);
+            if (!featuresActive)
+            {
+                if (debugEnabled) Debug.Log("[MasterTerrainGenerator] No feature generator present, ignoring");
+            }
         }
 
         /// <summary>
@@ -77,6 +93,7 @@ namespace Permafrost.World
             noiseGenerator.GeneratePermutations();
             Activated = true;
 
+            // prints the simplex permutation tables into debug log
             if (extensiveDebug)
             {
                 Debug.Log($"[MasterTerrainGenerator] From SimplexGenerator: Height Permutation Table:");
@@ -185,6 +202,7 @@ namespace Permafrost.World
             // just to prevent too much processing in one frame
             yield return new WaitForFixedUpdate();
             FindAndConnectNeighbors(terrainBlock);
+            if (featuresActive) featureGenerator.GenerateObjectsFor(terrainBlock.gameObject);
         }
 
         /// <summary>
@@ -228,3 +246,4 @@ namespace Permafrost.World
         }
     }
 }
+// 101 SLOC

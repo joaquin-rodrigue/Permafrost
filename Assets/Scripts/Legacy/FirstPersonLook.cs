@@ -1,6 +1,7 @@
 ﻿using UnityEngine;
 using UnityEngine.InputSystem;
 
+[System.Obsolete]
 public class FirstPersonLook : MonoBehaviour
 {
     [SerializeField] private Transform character;

@@ -46,7 +46,7 @@ namespace Permafrost.Player
         [Header("Component References")]
         [SerializeField] private DayNightCycle dayNightCycle;
         [SerializeField] private GameMaster gameMaster;
-        [SerializeField] private GroundChecker groundChecker;
+        [SerializeField] private Utilities.GroundChecker groundChecker;
         [SerializeField] private PlayerInventory inventory;
         [SerializeField] private Transform cameraTransform;
         //[SerializeField] private UIController uiController;

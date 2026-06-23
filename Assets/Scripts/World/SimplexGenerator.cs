@@ -6,6 +6,12 @@ using UnityEngine;
 
 namespace Permafrost.World
 {
+    /// <summary>
+    /// A simple container for both a noise layer's weight and scale values.
+    /// Effectively a Vector2 in terms of data stored, but the context of being a noise
+    /// layer (and isn't compatible with most Vector2 functions, not that you'd need
+    /// them in context).
+    /// </summary>
     [Serializable]
     public struct NoiseLayer
     {
@@ -14,7 +20,11 @@ namespace Permafrost.World
     }
 
     /// <summary>
-    /// 
+    /// TODO: biomes still need work?
+    /// I almost wonder if I should attach biome data to a game object and
+    /// then child it to the terrain? then when for example the feature generator
+    /// goes to make trees n shit it can read biome data from it? heights are handled
+    /// by the noise layer normally and the random float could be like forestation
     /// </summary>
     /// <remarks>
     /// Most of the simplex math is dont through async tasks so it can run in
@@ -232,8 +242,6 @@ namespace Permafrost.World
             float lerp1, lerp2, fx, fy;
             lerp1 = math.lerp(PerlinGradient(aa, xf, yf, 0), PerlinGradient(ba, xf - 1, yf, 0), u);
             lerp2 = math.lerp(PerlinGradient(ab, xf, yf - 1, 0), PerlinGradient(bb, xf - 1, yf - 1, 0), u);
-            fx = math.lerp(biomes[xi].y, biomes[PositiveMod(xi - 1, biomes.Length)].y, lerp1);
-            fy = math.lerp(biomes[yi].y, biomes[PositiveMod(yi - 1, biomes.Length)].y, lerp2);
 
             return ((math.lerp(lerp1, lerp2, v) + 1) / 2);
         }
@@ -260,5 +268,5 @@ namespace Permafrost.World
             return temp;
         }
     }
-
 }
+// 83 SLOC

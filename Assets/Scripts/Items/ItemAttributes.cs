@@ -51,5 +51,5 @@ namespace Permafrost.Items
         public int LightRange;
         public Color LightColor;
     }
-
 }
+// 31 SLOC

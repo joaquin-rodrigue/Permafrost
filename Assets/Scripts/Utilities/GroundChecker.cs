@@ -2,6 +2,10 @@ using UnityEngine;
 
 namespace Permafrost.Utilities
 {
+    /// <summary>
+    /// Universal ground checking component for any objects that need it.
+    /// Used for players but also by most enemies.
+    /// </summary>
     [DefaultExecutionOrder(-10)]
     public class GroundChecker : MonoBehaviour
     {
@@ -21,7 +25,7 @@ namespace Permafrost.Utilities
         public bool CanJump { get; private set; }
 
         [Header("Component References")]
-        //[SerializeField] private GameMaster gameMaster;
+        [SerializeField] private GameMaster gameMaster;
         [SerializeField] private Collider groundCollider;
 
         [Header("Debug")]
@@ -29,6 +33,7 @@ namespace Permafrost.Utilities
         #endregion
 
         #region Unity Methods
+        // Setup
         private void OnEnable()
         {
             Grounded = false;
@@ -36,15 +41,19 @@ namespace Permafrost.Utilities
             DistanceToGround = 0;
         }
 
+        // yup
         private void FixedUpdate()
         {
-            //if (gameMaster.GamePaused) return;
+            if (gameMaster.GamePaused) return;
 
             CheckForGround();
         }
         #endregion
 
         #region Updating the ground check
+        /// <summary>
+        /// The function that checks whether the object is grounded.
+        /// </summary>
         private void CheckForGround()
         {
             Physics.Raycast(transform.position, Vector3.down, out RaycastHit hit, MAX_GROUND_CHECK_DISTANCE, groundLayers, QueryTriggerInteraction.Ignore);
@@ -59,6 +68,7 @@ namespace Permafrost.Utilities
             }
         }
 
+        // To make sure that ground checking happens when the object actually collides with the ground.
         private void OnCollisionEnter(Collision collision)
         {
             int num = groundLayers.value & collision.gameObject.layer;
@@ -72,3 +82,4 @@ namespace Permafrost.Utilities
         #endregion
     }
 }
+// 22 SLOC

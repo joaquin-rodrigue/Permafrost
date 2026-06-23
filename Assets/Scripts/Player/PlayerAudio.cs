@@ -1,3 +1,5 @@
+using Permafrost.Utilities;
+
 using System;
 using UnityEngine;
 using UnityEngine.Audio;
@@ -16,6 +18,8 @@ namespace Permafrost.Player
     }
 
     /// <summary>
+    /// TODO: swap footstep sounds based on the surface we're on
+    /// TODO: basically anything termperature related
     /// Controls all player sourced sound effects. Most of which can be called
     /// upon by other classes to play any of the sound effects of that kind.
     /// </summary>
@@ -53,7 +57,7 @@ namespace Permafrost.Player
         [Header("Component References")]
         [SerializeField] private AudioMixer audioMixer;
         [SerializeField] private GameMaster gameMaster;
-        [SerializeField] private GroundCheck groundCheck;
+        [SerializeField] private GroundChecker groundCheck;
         [SerializeField] private PlayerStatus playerStatus;
 
         private PlayerController playerController;
@@ -91,7 +95,7 @@ namespace Permafrost.Player
         /// </summary>
         private void FootprintUpdate()
         {
-            //if (!groundCheck.Grounded) return;
+            if (!groundCheck.Grounded) return;
 
             footprintTimer += rb.linearVelocity.magnitude * Time.fixedDeltaTime;
             if (footprintTimer < distanceBetweenFootprints) return;
@@ -167,3 +171,4 @@ namespace Permafrost.Player
         #endregion
     }
 }
+// 58 SLOC

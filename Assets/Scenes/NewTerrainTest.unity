@@ -251,6 +251,7 @@ GameObject:
   - component: {fileID: 1551831097}
   - component: {fileID: 1551831098}
   - component: {fileID: 1551831099}
+  - component: {fileID: 1551831100}
   m_Layer: 0
   m_Name: MasterGenerator
   m_TagString: TerrainGenerator
@@ -320,10 +321,51 @@ MonoBehaviour:
   - weight: 0.015
     scaleModifier: 1.8
   biomeNoiseLayer:
-    weight: 1
+    weight: 0.5
     scaleModifier: 0.1
   masterGenerator: {fileID: 1551831098}
   debugEnabled: 0
+--- !u!114 &1551831100
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1551831096}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 68a46251527529e4f95b695a59eab88f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  treeTypes:
+  - {fileID: 7259184375205987391, guid: 555a1aee979cfa2449df55138fda84f8, type: 3}
+  bushTypes:
+  - {fileID: 3293780685696550240, guid: a414e68668cd9984a9b161582d27a7ba, type: 3}
+  fences:
+  - {fileID: 5602419482316337164, guid: 95ad9e724c9e9c243a74593fab0bebda, type: 3}
+  - {fileID: 3056096258729834108, guid: f6c9b43490e7c3b4ab688c98df878ec2, type: 3}
+  - {fileID: 1917161593403076669, guid: 46144c6d014472f43854b715d8081571, type: 3}
+  TODO: 0
+  TODDO: 0
+  maxTreesPerBlock: 100
+  minTreesPerBlock: 10
+  maxTreesPerCluster: 10
+  minTreesPerCluster: 1
+  chanceToOverrideTreeCounts: 0.01
+  maxBushesPerBlock: 25
+  minBushesPerBlock: 4
+  maxBushesPerCluster: 5
+  minBushesPerCluster: 1
+  chanceToOverrideBushCounts: 0.01
+  maxFencesPerBlock: 0
+  minFencesPerBlock: 0
+  chanceToOverrideFenceCounts: 0
+  maxLoopCountDuringGenerationSteps: 1000
+  terrainLayerMask:
+    serializedVersion: 2
+    m_Bits: 64
+  heightRaycastDistance: 400
+  debugEnabled: 1
 --- !u!1 &2091764198
 GameObject:
   m_ObjectHideFlags: 0

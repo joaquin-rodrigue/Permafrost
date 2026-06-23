@@ -3,7 +3,7 @@ using UnityEngine;
 namespace Permafrost.Player
 {
     /// <summary>
-    /// 
+    /// todo. just everything
     /// </summary>
     public class PlayerAnimator : MonoBehaviour
     {

@@ -3,7 +3,7 @@ using UnityEngine;
 namespace Permafrost.World
 {
     /// <summary>
-    /// Main handler for day/night cycle behaviour.
+    /// Main handler for day/night cycle behaviour. Handles the light values, moon cycles, and a couple related rendering tasks.
     /// </summary>
     public class DayNightCycle : MonoBehaviour
     {
@@ -21,6 +21,7 @@ namespace Permafrost.World
         [SerializeField] private float newMoonBrightness = 0f;
         [SerializeField] private float fullMoonBrightness = 0.15f;
 
+        public float DayLength { get => dayLength; }
         private float dayMax;
         private float dayMin;
 
@@ -120,6 +121,24 @@ namespace Permafrost.World
                 Debug.Log($"[DayNightCycle] rotation: {rotation}");
             }
         }
+
+        /// <summary>
+        /// Adds a certain amount of time to the time of day.
+        /// Also calls <c>CheckStartNewDay</c> to make sure the day doesnt need to cycle.
+        /// </summary>
+        /// <param name="time"></param>
+        public void AddDayTime(float time)
+        {
+            this.time += time;
+            LightValue = Mathf.Clamp(
+                Mathf.Sin(Mathf.PI * 2 * (time + offsetToDayStart) / dayLength) * dayNightTransitionFactor + dayMin,
+                dayMin,
+                dayMax
+            );
+            CheckStartNewDay();
+        }
+
         #endregion
     }
 }
+// 48 SLOC

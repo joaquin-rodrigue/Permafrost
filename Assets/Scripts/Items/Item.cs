@@ -88,6 +88,11 @@ namespace Permafrost.Items
             ammoCount = attributest.GunMagazineSize;
         }
 
+        /// <summary>
+        /// Creates an Item based on the given attributes, and attempts to search for the associated behavior class.
+        /// If no behavior class is found, the item won't work.
+        /// </summary>
+        /// <param name="attributest">The ItemAttributes this item is based on.</param>
         public Item(ItemAttributes attributest)
         {
             attributes = attributest;
@@ -103,6 +108,10 @@ namespace Permafrost.Items
             }
         }
 
+        /// <summary>
+        /// Creates a copy of the existing item, using the same attributes and behaviors.
+        /// </summary>
+        /// <param name="original">The item to copy.</param>
         public Item(Item original)
         {
             attributes = original.Stats;
@@ -242,3 +251,4 @@ namespace Permafrost.Items
         #endregion
     }
 }
+// 82 SLOC

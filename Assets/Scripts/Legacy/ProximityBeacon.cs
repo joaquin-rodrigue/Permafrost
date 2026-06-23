@@ -1,5 +1,6 @@
 using UnityEngine;
 
+[System.Obsolete]
 public class ProximityBeacon : MonoBehaviour
 {
     public Transform player;

@@ -10,7 +10,7 @@ using UnityEngine.InputSystem;
 namespace Permafrost.UI
 {
     /// <summary>
-    /// 
+    /// Handler for all UI directly updated by the player components.
     /// </summary>
     public class PlayerUI : MonoBehaviour
     {
@@ -158,3 +158,4 @@ namespace Permafrost.UI
         #endregion
     }
 }
+// 56 SLOC

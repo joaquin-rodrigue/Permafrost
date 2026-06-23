@@ -28,3 +28,4 @@ namespace Permafrost.Items
         public bool Use(PlayerInventory inventory, Item self);
     }
 }
+// 3 sloc

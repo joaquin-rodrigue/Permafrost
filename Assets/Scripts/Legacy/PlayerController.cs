@@ -24,6 +24,7 @@ using Permafrost.Items; // also a bandaid fix
 /// </remarks>
 [RequireComponent(typeof(Rigidbody))]
 [RequireComponent(typeof(PlayerInput))]
+[System.Obsolete]
 public class PlayerController : MonoBehaviour
 {
     // Movement

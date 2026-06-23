@@ -112,6 +112,7 @@ namespace Permafrost.Items
         /// </summary>
         /// <param name="itemName">The name of the item to spawn.</param>
         /// <param name="position">The transform at whose position the item will be spawned.</param>
+        [Obsolete]
         public void CreatePhysicalItem(string itemName, Transform position)
         {
             int index = SearchItemList(itemName);
@@ -129,6 +130,7 @@ namespace Permafrost.Items
         /// </summary>
         /// <param name="itemName">The name of the item to find the model for.</param>
         /// <returns>The Mesh corresponding to the item, or null if the item doesn't exist.</returns>
+        [Obsolete]
         public Mesh GetItemModel(string itemName)
         {
             int index = SearchItemList(itemName);
@@ -163,6 +165,7 @@ namespace Permafrost.Items
         /// </summary>
         /// <param name="itemName">The name of the item to find a view model scale for.</param>
         /// <returns>A Vector3 of the scale of the item's view model, or <c>Vector3.one</c> if the item isn't found.</returns>
+        [Obsolete]
         public Vector3 GetItemScale(string itemName)
         {
             int index = SearchItemList(itemName);
@@ -180,6 +183,7 @@ namespace Permafrost.Items
         /// </summary>
         /// <param name="itemName">The name of the item to find a view model rotation for.</param>
         /// <returns>A Quaternion for the item's view model rotation, or <c>Quaternion.identity</c> if the item isn't found.</returns>
+        [Obsolete]
         public Quaternion GetItemRotation(string itemName)
         {
             int index = SearchItemList(itemName);
@@ -197,6 +201,7 @@ namespace Permafrost.Items
         /// </summary>
         /// <param name="itemName">The name of the item to find an inventory sprite for.</param>
         /// <returns>The inventory sprite for the item, or null if the item isn't found.</returns>
+        [Obsolete]
         public Sprite GetItemInventoryRender(string itemName)
         {
             int index = SearchItemList(itemName);
