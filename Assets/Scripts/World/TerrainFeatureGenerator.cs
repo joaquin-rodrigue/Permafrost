@@ -126,7 +126,11 @@ namespace Permafrost.World
                 }
 
                 int countInArea = RNG.Next(minTreesPerCluster, maxTreesPerCluster);
-                int treeTypeIndex = RNG.Next(0, treeTypes.Length - 1);
+                int treeTypeIndex = RNG.Next(0, treeTypes.Length);
+                if (debugEnabled)
+                {
+                    Debug.Log($"[TerrainFeatureGenerator] Tree cluster of: {countInArea} using type {treeTypeIndex}");
+                }
                 for (int j = 0; j < countInArea; j++)
                 {
                     RaycastHit chosenPoint = new();
@@ -146,10 +150,10 @@ namespace Permafrost.World
                     currentObj.transform.localScale = new Vector3((float) RNG.NextDouble() * 0.5f + 0.95f, (float) RNG.NextDouble() * 0.5f + 0.95f, (float) RNG.NextDouble() * 0.5f + 0.95f);
                     i++;
 
-                    if (debugEnabled)
+                    /*if (debugEnabled)
                     {
                         Debug.Log($"[TerrainFeatureGenerator] Tree built at {currentObj.transform.position}");
-                    }
+                    }*/
                 }
             }
 

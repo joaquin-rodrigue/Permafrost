@@ -338,7 +338,10 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   treeTypes:
-  - {fileID: 7259184375205987391, guid: 555a1aee979cfa2449df55138fda84f8, type: 3}
+  - {fileID: 6718805305465892926, guid: a8204573eaba33446ae45fb9c13a9550, type: 3}
+  - {fileID: 4272077837405814260, guid: d782f6440dba2a04fb2afeb996f99e21, type: 3}
+  - {fileID: 340890456388898081, guid: a6e3d0b7a9e463f4fa61777c6752cd54, type: 3}
+  - {fileID: 2831833783023313930, guid: 13b78fdfa81c9904398ada861c001806, type: 3}
   bushTypes:
   - {fileID: 3293780685696550240, guid: a414e68668cd9984a9b161582d27a7ba, type: 3}
   fences:
