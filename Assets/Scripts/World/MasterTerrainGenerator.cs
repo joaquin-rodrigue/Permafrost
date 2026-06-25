@@ -74,7 +74,7 @@ namespace Permafrost.World
             featuresActive = TryGetComponent(out featureGenerator);
             if (!featuresActive)
             {
-                if (debugEnabled) Debug.Log("[MasterTerrainGenerator] No feature generator present, ignoring");
+                if (debugEnabled) Debug.Log("[MasterTerrainGenerator] No feature generator present/active, ignoring");
             }
         }
 
@@ -106,9 +106,9 @@ namespace Permafrost.World
                 Debug.Log($"[MasterTerrainGenerator] {list}");
 
                 Debug.Log($"[MasterTerrainGenerator] From SimplexGenerator: Biome Permutation Table:");
-                Unity.Mathematics.float2[] biomemap = noiseGenerator.GetBiomemapPermutation();
+                Unity.Mathematics.float3[] biomemap = noiseGenerator.GetBiomemapPermutation();
                 list = "";
-                foreach (Unity.Mathematics.float2 b in biomemap)
+                foreach (Unity.Mathematics.float3 b in biomemap)
                 {
                     list += $"{b}, ";
                 }
@@ -191,14 +191,17 @@ namespace Permafrost.World
             Vector3 cellPosition = position / terrainCellSize + new Vector3(127, 0, 127);
             CancellationTokenSource tokenSource = new();
             CancellationToken token = tokenSource.Token;
-            Task<float[,]> math = Task.Run(() => noiseGenerator.GenerateCellHeights(terrainCellSize, (int)cellPosition.x, (int)cellPosition.z, token));
+            Task<PerlinResultData> math = Task.Run(() => noiseGenerator.GenerateCellHeights(terrainCellSize, (int)cellPosition.x, (int)cellPosition.z, token));
             yield return new WaitUntil(() =>
             {
                 return math.IsCompleted || math.IsCanceled;
             });
-            tempHeightsArray = math.Result;
 
+            tempHeightsArray = math.Result.heights;
             terrainBlock.terrainData.SetHeights(0, 0, tempHeightsArray);
+            ChunkData biomeData = terrainBlock.gameObject.AddComponent<ChunkData>();
+            biomeData.SetValues(math.Result.forestationFactor, math.Result.dryFactor);
+
             // just to prevent too much processing in one frame
             yield return new WaitForFixedUpdate();
             FindAndConnectNeighbors(terrainBlock);

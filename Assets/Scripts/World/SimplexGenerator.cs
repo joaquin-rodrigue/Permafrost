@@ -20,6 +20,16 @@ namespace Permafrost.World
     }
 
     /// <summary>
+    /// The resulting data from the perlin noise functions.
+    /// </summary>
+    public struct PerlinResultData
+    {
+        public float[,] heights;
+        public float forestationFactor;
+        public float dryFactor;
+    }
+
+    /// <summary>
     /// TODO: biomes still need work?
     /// I almost wonder if I should attach biome data to a game object and
     /// then child it to the terrain? then when for example the feature generator
@@ -36,8 +46,8 @@ namespace Permafrost.World
     {
         private byte[] heightPermutation;
         private byte[] heights;
-        private float2[] biomePermutation;
-        private float2[] biomes;
+        private float3[] biomePermutation;
+        private float3[] biomes;
 
         [Header("Generation Settings")]
         [SerializeField] private int permutationTableSize = 256;
@@ -60,8 +70,8 @@ namespace Permafrost.World
             // maps but...
             heightPermutation = new byte[permutationTableSize];
             heights = new byte[permutationTableSize * 2];
-            biomePermutation = new float2[permutationTableSize];
-            biomes = new float2[permutationTableSize * 2];
+            biomePermutation = new float3[permutationTableSize];
+            biomes = new float3[permutationTableSize * 2];
 
             if (masterGenerator.MasterRNG == null)
             {
@@ -76,7 +86,7 @@ namespace Permafrost.World
             for (; i < permutationTableSize * 2; i++) heights[i] = heights[i - permutationTableSize]; // technically a microoptimization over using modulus
 
             // biomes
-            for (i = 0; i < permutationTableSize; i++) biomePermutation[i] = new((byte) masterGenerator.MasterRNG.Next(0, 255), (float) masterGenerator.MasterRNG.NextDouble());
+            for (i = 0; i < permutationTableSize; i++) biomePermutation[i] = new((byte) masterGenerator.MasterRNG.Next(0, 255), (float) masterGenerator.MasterRNG.NextDouble(), (float) masterGenerator.MasterRNG.NextDouble());
             for (i = 0; i < permutationTableSize; i++) biomes[i] = biomePermutation[i];
             for (; i < permutationTableSize * 2; i++) biomes[i] = biomes[i - permutationTableSize];
 
@@ -93,10 +103,13 @@ namespace Permafrost.World
         /// <param name="cellY">The cell's Y position relative to other cells. Example: If this is the -3rd cell up, this would be -3 due to zero indexing.</param>
         /// <param name="cancel">A cancellation token in case the operation has to be cancelled midway through generation.</param>
         /// <returns>A Task that upon completion returns a 2D array of floats representing the height values of the grid chunk.</returns>
-        public async Task<float[,]> GenerateCellHeights(int cellSize, int cellX, int cellY, CancellationToken cancel)
+        public async Task<PerlinResultData> GenerateCellHeights(int cellSize, int cellX, int cellY, CancellationToken cancel)
         {
             return await Task.Run(() => {
                 float[,] heights = new float[cellSize + 1, cellSize + 1];
+                float forestation = 0;
+                float dry = 0;
+                int l = 0;
                 if (debugEnabled)
                 {
                     Debug.Log($"[SimplexGenerator] cellX: {cellX}, cellY: {cellY}");
@@ -116,10 +129,16 @@ namespace Permafrost.World
                         }
                         heights[i, j] += biomeNoiseLayer.weight * BiomePerlin(
                             cellX * biomeNoiseLayer.scaleModifier + (j / (float)cellSize * biomeNoiseLayer.scaleModifier),
-                            cellY * biomeNoiseLayer.scaleModifier + (i / (float)cellSize * biomeNoiseLayer.scaleModifier));
+                            cellY * biomeNoiseLayer.scaleModifier + (i / (float)cellSize * biomeNoiseLayer.scaleModifier),
+                            ref forestation, ref dry);
+                        l++;
                     }
                 }
-                return heights;
+                PerlinResultData data = new PerlinResultData();
+                data.heights = heights;
+                data.forestationFactor = forestation / (float)l;
+                data.dryFactor = dry / (float)l;
+                return data;
             }, cancel);
         }
 
@@ -213,8 +232,10 @@ namespace Permafrost.World
         /// </summary>
         /// <param name="x"></param>
         /// <param name="y"></param>
+        /// <param name="d">The dry factor of the chunk's biome.</param>
+        /// <param name="f">The forestation factor of the chunk's biome.</param>
         /// <returns></returns>
-        private float BiomePerlin(float x, float y)
+        private float BiomePerlin(float x, float y, ref float f, ref float d)
         {
             // Separate int and float portions of the coords
             int xi = (int) x, yi = (int) y;
@@ -238,10 +259,16 @@ namespace Permafrost.World
             yx = biomes[PositiveMod((int) biomes[xi + 1].x + yi, heights.Length)].y;
             yy = biomes[PositiveMod((int) biomes[xi + 1].x + yi + 1, heights.Length)].y;*/
 
-            // Lerp it all together, and multiply by height mod
+            // Lerp it all together
             float lerp1, lerp2, fx, fy;
             lerp1 = math.lerp(PerlinGradient(aa, xf, yf, 0), PerlinGradient(ba, xf - 1, yf, 0), u);
             lerp2 = math.lerp(PerlinGradient(ab, xf, yf - 1, 0), PerlinGradient(bb, xf - 1, yf - 1, 0), u);
+            fx = math.lerp(biomes[xi].y, biomes[PositiveMod(xi - 1, biomes.Length)].y, xf);
+            fy = math.lerp(biomes[yi].y, biomes[PositiveMod(yi - 1, biomes.Length)].y, yf);
+            f += (fx + fy) / 2;
+            fx = math.lerp(biomes[xi].z, biomes[PositiveMod(xi - 1, biomes.Length)].z, xf);
+            fy = math.lerp(biomes[yi].z, biomes[PositiveMod(yi - 1, biomes.Length)].z, yf);
+            d += (fx + fy) / 2;
 
             return ((math.lerp(lerp1, lerp2, v) + 1) / 2);
         }
@@ -261,9 +288,9 @@ namespace Permafrost.World
         /// Returns a copy of the biomemap permutation array.
         /// </summary>
         /// <returns></returns>
-        public float2[] GetBiomemapPermutation()
+        public float3[] GetBiomemapPermutation()
         {
-            float2[] temp = new float2[permutationTableSize];
+            float3[] temp = new float3[permutationTableSize];
             Array.Copy(biomePermutation, temp, permutationTableSize);
             return temp;
         }

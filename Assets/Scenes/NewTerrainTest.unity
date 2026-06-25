@@ -296,8 +296,8 @@ MonoBehaviour:
   setMasterSeed: 0
   useRandomObjectSeed: 1
   setObjectSeed: 0
-  debugEnabled: 0
-  extensiveDebug: 1
+  debugEnabled: 1
+  extensiveDebug: 0
 --- !u!114 &1551831099
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -344,17 +344,26 @@ MonoBehaviour:
   - {fileID: 2831833783023313930, guid: 13b78fdfa81c9904398ada861c001806, type: 3}
   bushTypes:
   - {fileID: 3293780685696550240, guid: a414e68668cd9984a9b161582d27a7ba, type: 3}
+  - {fileID: 626952854524591006, guid: e099fcd15c3a7124798b6cf8486eae2f, type: 3}
   fences:
   - {fileID: 5602419482316337164, guid: 95ad9e724c9e9c243a74593fab0bebda, type: 3}
   - {fileID: 3056096258729834108, guid: f6c9b43490e7c3b4ab688c98df878ec2, type: 3}
   - {fileID: 1917161593403076669, guid: 46144c6d014472f43854b715d8081571, type: 3}
   TODO: 0
   TODDO: 0
+  treeDrynessWeights:
+  - {x: 25, y: 100}
+  - {x: 60, y: 100}
+  - {x: 50, y: 90}
+  - {x: 50, y: 10}
   maxTreesPerBlock: 100
   minTreesPerBlock: 10
   maxTreesPerCluster: 10
   minTreesPerCluster: 1
   chanceToOverrideTreeCounts: 0.01
+  bushDrynessWeights:
+  - {x: 50, y: 75}
+  - {x: 35, y: 65}
   maxBushesPerBlock: 25
   minBushesPerBlock: 4
   maxBushesPerCluster: 5

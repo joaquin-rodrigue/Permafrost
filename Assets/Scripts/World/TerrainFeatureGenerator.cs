@@ -21,17 +21,24 @@ namespace Permafrost.World
         [SerializeField] private float TODDO;
 
         [Header("Tree Config")]
+        [Tooltip("The weights for (1) each tree spawning in very dry conditions, and (2) each tree spawning in very wet conditions. This relates to biomes.")]
+        [SerializeField] private Vector2[] treeDrynessWeights;
         [SerializeField] private int maxTreesPerBlock;
         [SerializeField] private int minTreesPerBlock;
         [SerializeField] private int maxTreesPerCluster;
         [SerializeField] private int minTreesPerCluster;
+        [Tooltip("When the number of trees for a block is determined, this chance is rolled to increase/decrease the limits. Effectively, if the roll succeeds, the upper limit is doubled and the lower limit is halved, and the chance is rolled once again. This continues until the roll fails.")]
+        [Range(0f, 1f - float.Epsilon)]
         [SerializeField] private float chanceToOverrideTreeCounts;
 
         [Header("Bush Config")]
+        [SerializeField] private Vector2[] bushDrynessWeights;
         [SerializeField] private int maxBushesPerBlock;
         [SerializeField] private int minBushesPerBlock;
         [SerializeField] private int maxBushesPerCluster;
         [SerializeField] private int minBushesPerCluster;
+        [Tooltip("When the number of trees for a block is determined, this chance is rolled to increase/decrease the limits. Effectively, if the roll succeeds, the upper limit is doubled and the lower limit is halved, and the chance is rolled once again. This continues until the roll fails.")]
+        [Range(0f, 1f - float.Epsilon)]
         [SerializeField] private float chanceToOverrideBushCounts;
 
         [Header("Fence Config")]
@@ -68,21 +75,24 @@ namespace Permafrost.World
         /// <param name="terrain">The GameObject for the current terrain cell.</param>
         public void GenerateObjectsFor(GameObject terrain)
         {
+            // setups
             Bounds cellBounds = new(
                 terrain.transform.position + new Vector3(masterGenerator.TerrainCellSize / 2, 0, masterGenerator.TerrainCellSize / 2),
                 new Vector3(masterGenerator.TerrainCellSize, 1, masterGenerator.TerrainCellSize));
             System.Random RNG = masterGenerator.ObjectRNG;
+            ChunkData chunkData = terrain.GetComponent<ChunkData>();
 
-            GenerateTreesAndBushes(terrain, cellBounds, RNG);
+            // each of these is a phase
+            GenerateTreesAndBushes(terrain, cellBounds, RNG, chunkData);
         }
 
         /// <summary>
-        /// Phase One: Generates the trees and bushes around the map.
+        /// Phase Two: Generates the trees and bushes around the map.
         /// </summary>
         /// <param name="terrain">The GameObject for the current terrain cell.</param>
         /// <param name="cellBounds">The bounds of the current terrain cell (although only x and z components are currently used).</param>
         /// <param name="RNG">The Master Terrain Generator's Object RNG.</param>
-        private void GenerateTreesAndBushes(GameObject terrain, Bounds cellBounds, System.Random RNG)
+        private void GenerateTreesAndBushes(GameObject terrain, Bounds cellBounds, System.Random RNG, ChunkData dat)
         {
             // first we decide counts
             bool overridenLimits = RNG.NextDouble() < chanceToOverrideTreeCounts;
@@ -96,11 +106,27 @@ namespace Permafrost.World
             }
 
             // now we make tree
-            int treeCount = RNG.Next(lowerBound, upperBound);
+            int treeCount = (int) (RNG.Next(lowerBound, upperBound) * dat.ForestationFactor);
             bool foundValidSpawn = false;
             RaycastHit hit = new();
             int currentLoopCount = 0;
-            if (debugEnabled) Debug.Log($"[TerrainFeatureGenerator] Cell tree count goal: {treeCount}");
+            if (debugEnabled) Debug.Log($"[TerrainFeatureGenerator] Cell tree count goal: {treeCount}, cell forestation factor: {dat.ForestationFactor}");
+
+            // determine tree spawn weights
+            int totalWeight = 0;
+            int[] individualWeights = new int[treeTypes.Length];
+            for (int t = 0; t < treeDrynessWeights.Length; t++)
+            {
+                Vector2 current = treeDrynessWeights[t];
+                individualWeights[t] = (int)Mathf.Lerp(current.x, current.y, dat.DryFactor);
+                totalWeight += individualWeights[t];
+            }
+            if (debugEnabled)
+            {
+                string wei = "";
+                for (int t = 0; t < treeDrynessWeights.Length; t++) wei += individualWeights[t] + ", ";
+                Debug.Log($"[TerrainFeatureGenerator] Cell dry factor: {dat.DryFactor}, current weights: {wei}");
+            }
 
             for (int i = 0; i < treeCount && currentLoopCount < maxLoopCountDuringGenerationSteps;)
             {
@@ -125,8 +151,20 @@ namespace Permafrost.World
                     break;
                 }
 
+                // we have to decide type of tree and count in the cluster
                 int countInArea = RNG.Next(minTreesPerCluster, maxTreesPerCluster);
-                int treeTypeIndex = RNG.Next(0, treeTypes.Length);
+                int treeTypeRoll = RNG.Next(0, totalWeight);
+                int treeTypeIndex = 0;
+                for (int t = 0; t < treeDrynessWeights.Length; t++)
+                {
+                    if (treeTypeRoll < individualWeights[t])
+                    {
+                        treeTypeIndex = t;
+                        break;
+                    }
+                    treeTypeRoll -= individualWeights[t];
+                }
+
                 if (debugEnabled)
                 {
                     Debug.Log($"[TerrainFeatureGenerator] Tree cluster of: {countInArea} using type {treeTypeIndex}");
@@ -173,6 +211,22 @@ namespace Permafrost.World
             currentLoopCount = 0;
             if (debugEnabled) Debug.Log($"[TerrainFeatureGenerator] Cell bush count goal: {bushCount}");
 
+            totalWeight = 0;
+            individualWeights = new int[bushTypes.Length];
+            for (int t = 0; t < bushDrynessWeights.Length; t++)
+            {
+                Vector2 current = treeDrynessWeights[t];
+                individualWeights[t] = (int)Mathf.Lerp(current.x, current.y, dat.DryFactor);
+                totalWeight += individualWeights[t];
+            }
+            if (debugEnabled)
+            {
+                string wei = "";
+                for (int t = 0; t < bushDrynessWeights.Length; t++) wei += individualWeights[t] + ", ";
+                Debug.Log($"[TerrainFeatureGenerator] Cell dry factor: {dat.DryFactor}, current weights: {wei}");
+            }
+
+            // george w. bush
             for (int i = 0; i < bushCount && currentLoopCount < maxLoopCountDuringGenerationSteps;)
             {
                 foundValidSpawn = false;
@@ -189,7 +243,7 @@ namespace Permafrost.World
                     currentLoopCount++;
                 }
 
-                // george w. bush
+                // george h. w. bush
                 if (currentLoopCount >= maxLoopCountDuringGenerationSteps)
                 {
                     if (debugEnabled) Debug.Log($"[TerrainFeatureGenerator] Bushes ran past the max loop count, aborting bush step!");
@@ -197,11 +251,22 @@ namespace Permafrost.World
                 }
 
                 int countInArea = RNG.Next(minBushesPerCluster, maxBushesPerCluster);
-                int bushTypeIndex = RNG.Next(0, bushTypes.Length);
+                int bushTypeRoll = RNG.Next(0, totalWeight);
+                int bushTypeIndex = 0;
+                for (int t = 0; t < treeDrynessWeights.Length; t++)
+                {
+                    if (bushTypeRoll < individualWeights[t])
+                    {
+                        bushTypeIndex = t;
+                        break;
+                    }
+                    bushTypeRoll -= individualWeights[t];
+                }
+
                 for (int j = 0; j < countInArea; j++)
                 {
                     RaycastHit chosenPoint = new();
-                    // george h. w. bush
+                    // george p. h. w. bush
                     while (!Physics.Raycast(new Vector3(
                         hit.point.x + RNG.Next(-10, 10),
                         hit.point.y + (heightRaycastDistance / 4),
