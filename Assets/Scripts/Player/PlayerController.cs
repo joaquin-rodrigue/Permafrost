@@ -190,7 +190,7 @@ namespace Permafrost.Player
         }
 
         /// <summary>
-        /// Updates the player's movement.
+        /// schmovin
         /// </summary>
         private void MoveUpdate()
         {

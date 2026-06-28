@@ -3,10 +3,10 @@ using UnityEngine;
 namespace Permafrost.World
 {
     /// <summary>
-    /// 
+    /// Generates all trees, bushes, and other natural foliage-type objects in the world.
     /// </summary>
     [RequireComponent(typeof(MasterTerrainGenerator))]
-    public class TerrainFeatureGenerator : MonoBehaviour
+    public class FoliageGenerator : MonoBehaviour
     {
         #region Data
         [Header("In-World Objects")]
@@ -70,30 +70,21 @@ namespace Permafrost.World
 
         #region Generation Phases
         /// <summary>
-        /// Generates all the objects for a given terrain object.
+        /// PHASE TWO: Generates all the foliage objects for a given terrain object.
         /// </summary>
         /// <param name="terrain">The GameObject for the current terrain cell.</param>
         public void GenerateObjectsFor(GameObject terrain)
         {
+            // well this one is set up weird because its a relic of an older model,
+            // TODO: change this so its just one, maybe two functions just so it makes 
+            // more sense i guess.new
             // setups
             Bounds cellBounds = new(
                 terrain.transform.position + new Vector3(masterGenerator.TerrainCellSize / 2, 0, masterGenerator.TerrainCellSize / 2),
                 new Vector3(masterGenerator.TerrainCellSize, 1, masterGenerator.TerrainCellSize));
             System.Random RNG = masterGenerator.ObjectRNG;
-            ChunkData chunkData = terrain.GetComponent<ChunkData>();
+            ChunkData dat = terrain.GetComponent<ChunkData>();
 
-            // each of these is a phase
-            GenerateTreesAndBushes(terrain, cellBounds, RNG, chunkData);
-        }
-
-        /// <summary>
-        /// Phase Two: Generates the trees and bushes around the map.
-        /// </summary>
-        /// <param name="terrain">The GameObject for the current terrain cell.</param>
-        /// <param name="cellBounds">The bounds of the current terrain cell (although only x and z components are currently used).</param>
-        /// <param name="RNG">The Master Terrain Generator's Object RNG.</param>
-        private void GenerateTreesAndBushes(GameObject terrain, Bounds cellBounds, System.Random RNG, ChunkData dat)
-        {
             // first we decide counts
             bool overridenLimits = RNG.NextDouble() < chanceToOverrideTreeCounts;
             int lowerBound = minTreesPerBlock;
@@ -106,7 +97,7 @@ namespace Permafrost.World
             }
 
             // now we make tree
-            int treeCount = (int) (RNG.Next(lowerBound, upperBound) * dat.ForestationFactor);
+            int treeCount = (int)(RNG.Next(lowerBound, upperBound) * dat.ForestationFactor);
             bool foundValidSpawn = false;
             RaycastHit hit = new();
             int currentLoopCount = 0;
@@ -134,9 +125,9 @@ namespace Permafrost.World
                 while (!foundValidSpawn && currentLoopCount < maxLoopCountDuringGenerationSteps)
                 {
                     foundValidSpawn = Physics.Raycast(new Vector3(
-                        RNG.Next((int) cellBounds.min.x, (int) cellBounds.max.x),
+                        RNG.Next((int)cellBounds.min.x, (int)cellBounds.max.x),
                         heightRaycastDistance,
-                        RNG.Next((int) cellBounds.min.z, (int) cellBounds.max.z)),
+                        RNG.Next((int)cellBounds.min.z, (int)cellBounds.max.z)),
                         Vector3.down,
                         out hit,
                         heightRaycastDistance,
@@ -185,7 +176,7 @@ namespace Permafrost.World
 
                     GameObject currentObj = Instantiate(treeTypes[treeTypeIndex], terrain.transform);
                     currentObj.transform.SetPositionAndRotation(chosenPoint.point, Quaternion.Euler(0, RNG.Next(0, 360), 0));
-                    currentObj.transform.localScale = new Vector3((float) RNG.NextDouble() * 0.5f + 0.95f, (float) RNG.NextDouble() * 0.5f + 0.95f, (float) RNG.NextDouble() * 0.5f + 0.95f);
+                    currentObj.transform.localScale = new Vector3((float)RNG.NextDouble() * 0.5f + 0.95f, (float)RNG.NextDouble() * 0.5f + 0.95f, (float)RNG.NextDouble() * 0.5f + 0.95f);
                     i++;
 
                     /*if (debugEnabled)
@@ -279,7 +270,7 @@ namespace Permafrost.World
 
                     GameObject currentObj = Instantiate(bushTypes[bushTypeIndex], terrain.transform);
                     currentObj.transform.SetPositionAndRotation(chosenPoint.point, Quaternion.Euler(0, RNG.Next(0, 360), 0));
-                    currentObj.transform.localScale = new Vector3((float) RNG.NextDouble() * 0.5f + 0.95f, (float) RNG.NextDouble() * 0.5f + 0.95f, (float) RNG.NextDouble() * 0.5f + 0.95f);
+                    currentObj.transform.localScale = new Vector3((float)RNG.NextDouble() * 0.5f + 0.95f, (float)RNG.NextDouble() * 0.5f + 0.95f, (float)RNG.NextDouble() * 0.5f + 0.95f);
                     i++;
 
                     if (debugEnabled)

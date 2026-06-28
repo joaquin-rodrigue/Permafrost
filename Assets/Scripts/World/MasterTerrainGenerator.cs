@@ -29,11 +29,14 @@ namespace Permafrost.World
         private float[,] tempHeightsArray;
 
         [Header("Terrain Generation Settings")]
+        [Tooltip("The center cell's cell position, please keep to integer components. Used mostly to figure out where to center the noise generation.")]
+        [SerializeField] private Vector2 centerCellCoordinates;
         [SerializeField] private bool useRandomMasterSeed;
         [SerializeField] private int setMasterSeed;
         [SerializeField] private bool useRandomObjectSeed;
         [SerializeField] private int setObjectSeed;
 
+        public Vector2 CenterCellLocation { get => centerCellCoordinates; }
         public int MasterSeed { get; private set; } = 0;
         public System.Random MasterRNG { get; private set; }
         public int ObjectSeed { get; private set; } = 0;
@@ -41,8 +44,10 @@ namespace Permafrost.World
         public bool Activated { get; private set; }
 
         private SimplexGenerator noiseGenerator;
-        private TerrainFeatureGenerator featureGenerator;
+        private FoliageGenerator featureGenerator;
+        private PathGenerator pathGenerator;
         private bool featuresActive;
+        private bool pathsActive;
 
         [Header("Debug")]
         [SerializeField] private bool debugEnabled;
@@ -69,12 +74,25 @@ namespace Permafrost.World
             }
             terrainCellSize = powerOfTwoCellSize;
             Activated = false;
+        }
 
+        // mostly to finish checking whether all the modules are active
+        private void Start()
+        {
             // and feature gen
             featuresActive = TryGetComponent(out featureGenerator);
+            if (featuresActive) featuresActive = featureGenerator.isActiveAndEnabled;
             if (!featuresActive)
             {
                 if (debugEnabled) Debug.Log("[MasterTerrainGenerator] No feature generator present/active, ignoring");
+            }
+
+            // and path gen
+            pathsActive = TryGetComponent(out pathGenerator);
+            if (pathsActive) pathsActive = pathGenerator.isActiveAndEnabled;
+            if (!pathsActive)
+            {
+                if (debugEnabled) Debug.Log($"[MasterTerrainGenerator] No path generator present/active, ignoring");
             }
         }
 
@@ -152,6 +170,11 @@ namespace Permafrost.World
         /// <param name="position">The grid position to spawn the object at.</param>
         public void GenerateNewBlock(Vector3 position)
         {
+            if (debugEnabled)
+            {
+                Debug.Log($"[MasterTerrainGenerator] Generating cell at: {position}");
+            }
+
             // terrain data comes first
             // this code, for some god awful reason, has to be ordered in this specific
             // way. if you try setting the terrain layers in any more concise a way, the
@@ -188,7 +211,16 @@ namespace Permafrost.World
         /// <returns>...what do i even put here? I guess it starts the task for the math, and waits until the task says it's completed, before storing the result in the tempHeightsArray field.</returns>
         private IEnumerator RunSimplexMath(Vector3 position, Terrain terrainBlock)
         {
-            Vector3 cellPosition = position / terrainCellSize + new Vector3(127, 0, 127);
+            // timing numbers for debug operations
+            long time = System.DateTime.Now.Ticks;
+            long totalTime = time;
+            if (extensiveDebug)
+            {
+                Debug.Log($"[MasterTerrainGenerator] Starting simplex math for cell {position}...");
+            }
+
+            // setup for and the simplex noise math
+            Vector3 cellPosition = position / terrainCellSize + new Vector3(centerCellCoordinates.x, 0, centerCellCoordinates.y);
             CancellationTokenSource tokenSource = new();
             CancellationToken token = tokenSource.Token;
             Task<PerlinResultData> math = Task.Run(() => noiseGenerator.GenerateCellHeights(terrainCellSize, (int)cellPosition.x, (int)cellPosition.z, token));
@@ -197,15 +229,51 @@ namespace Permafrost.World
                 return math.IsCompleted || math.IsCanceled;
             });
 
+            if (extensiveDebug)
+            {
+                totalTime = System.DateTime.Now.Ticks - time;
+                if (totalTime / 1000.0 < 16.6) Debug.Log($"[MasterTerrainGenerator] Simplex math completed in {totalTime / 1000.0} ms (nice)"); // not exactly 1 frame due to other things happening in a frame but still good
+                else if (totalTime / 1000.0 < 100.0) Debug.Log($"[MasterTerrainGenerator] Simplex math completed in {totalTime / 1000.0} ms");
+                else if (totalTime / 1000.0 < 500.0) Debug.LogWarning($"[MasterTerrainGenerator] Simplex math completed in {totalTime / 1000.0} ms, quite long"); // honestly this is probably where the math falls, could be worse
+                else Debug.LogError($"[MasterTerrainGenerator] Simplex math completed in {totalTime / 1000.0} ms, exceptionally long");
+            }
+
+            // we set some data onto the terrain object
             tempHeightsArray = math.Result.heights;
             terrainBlock.terrainData.SetHeights(0, 0, tempHeightsArray);
             ChunkData biomeData = terrainBlock.gameObject.AddComponent<ChunkData>();
-            biomeData.SetValues(math.Result.forestationFactor, math.Result.dryFactor);
+            biomeData.SetValues(
+                cellPosition, 
+                math.Result.forestationFactor, 
+                math.Result.dryFactor);
 
             // just to prevent too much processing in one frame
             yield return new WaitForFixedUpdate();
-            FindAndConnectNeighbors(terrainBlock);
+            FindAndConnectNeighbors(terrainBlock); // honestly probably doesnt take long enough to benchmark, at least not a significant time expenditure
+
+            // paths n shits
+            time = System.DateTime.Now.Ticks;
+            if (pathsActive) pathGenerator.GeneratePathsFor(terrainBlock.gameObject);
+            if (extensiveDebug)
+            {
+                totalTime = System.DateTime.Now.Ticks - time;
+                if (totalTime / 1000.0 < 16.6) Debug.Log($"[MasterTerrainGenerator] Paths completed in {totalTime / 1000.0} ms (nice)"); 
+                else if (totalTime / 1000.0 < 100.0) Debug.Log($"[MasterTerrainGenerator] Paths completed in {totalTime / 1000.0} ms");
+                else if (totalTime / 1000.0 < 500.0) Debug.LogWarning($"[MasterTerrainGenerator] Paths completed in {totalTime / 1000.0} ms, quite long");
+                else Debug.LogError($"[MasterTerrainGenerator] Paths completed in {totalTime / 1000.0} ms, exceptionally long");
+            }
+
+            // foliage features
+            time = System.DateTime.Now.Ticks;
             if (featuresActive) featureGenerator.GenerateObjectsFor(terrainBlock.gameObject);
+            if (extensiveDebug)
+            {
+                totalTime = System.DateTime.Now.Ticks - time;
+                if (totalTime / 1000.0 < 16.6) Debug.Log($"[MasterTerrainGenerator] Foliage features completed in {totalTime / 1000.0} ms (nice)");
+                else if (totalTime / 1000.0 < 100.0) Debug.Log($"[MasterTerrainGenerator] Foliage features completed in {totalTime / 1000.0} ms");
+                else if (totalTime / 1000.0 < 500.0) Debug.LogWarning($"[MasterTerrainGenerator] Foliage features completed in {totalTime / 1000.0} ms, quite long");
+                else Debug.LogError($"[MasterTerrainGenerator] Foliage features completed in {totalTime / 1000.0} ms, exceptionally long");
+            }
         }
 
         /// <summary>
