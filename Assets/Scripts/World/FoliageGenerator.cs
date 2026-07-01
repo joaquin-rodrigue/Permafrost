@@ -4,6 +4,8 @@ namespace Permafrost.World
 {
     /// <summary>
     /// Generates all trees, bushes, and other natural foliage-type objects in the world.
+    /// As of right now still has a couple placeholder fields and stuff from an older version,
+    /// ignore most of the TODOs, they're set to be moved to separate files soon.
     /// </summary>
     [RequireComponent(typeof(MasterTerrainGenerator))]
     public class FoliageGenerator : MonoBehaviour
@@ -273,10 +275,10 @@ namespace Permafrost.World
                     currentObj.transform.localScale = new Vector3((float)RNG.NextDouble() * 0.5f + 0.95f, (float)RNG.NextDouble() * 0.5f + 0.95f, (float)RNG.NextDouble() * 0.5f + 0.95f);
                     i++;
 
-                    if (debugEnabled)
+                    /*if (debugEnabled)
                     {
                         Debug.Log($"[TerrainFeatureGenerator] Bush generated at {currentObj.transform.position}");
-                    }
+                    }*/
                 }
             }
         }

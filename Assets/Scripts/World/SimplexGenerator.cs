@@ -6,6 +6,7 @@ using UnityEngine;
 
 namespace Permafrost.World
 {
+    #region Structs
     /// <summary>
     /// A simple container for both a noise layer's weight and scale values.
     /// Effectively a Vector2 in terms of data stored, but the context of being a noise
@@ -28,6 +29,7 @@ namespace Permafrost.World
         public float forestationFactor;
         public float dryFactor;
     }
+    #endregion
 
     /// <summary>
     /// TODO: biomes still need work?
@@ -44,6 +46,7 @@ namespace Permafrost.World
     /// </remarks>
     public class SimplexGenerator : MonoBehaviour
     {
+        #region Data
         private byte[] heightPermutation;
         private byte[] heights;
         private float3[] biomePermutation;
@@ -59,7 +62,9 @@ namespace Permafrost.World
 
         [Header("Debug")]
         [SerializeField] private bool debugEnabled;
-        
+        #endregion
+
+        #region Permutation
         /// <summary>
         /// Generates new permutation tables to use for noise generation.
         /// </summary>
@@ -93,6 +98,30 @@ namespace Permafrost.World
             return true;
         }
 
+        /// <summary>
+        /// Returns a copy of the heightmap permutation array.
+        /// </summary>
+        /// <returns></returns>
+        public byte[] GetHeightmapPermutation()
+        {
+            byte[] temp = new byte[permutationTableSize];
+            Array.Copy(heightPermutation, temp, permutationTableSize);
+            return temp;
+        }
+
+        /// <summary>
+        /// Returns a copy of the biomemap permutation array.
+        /// </summary>
+        /// <returns></returns>
+        public float3[] GetBiomemapPermutation()
+        {
+            float3[] temp = new float3[permutationTableSize];
+            Array.Copy(biomePermutation, temp, permutationTableSize);
+            return temp;
+        }
+        #endregion
+
+        #region Perlin/Simplex Noise
         /// <summary>
         /// Crunches the math for determining the height of every point in the terrain cell.
         /// This function can be called asynchronously. In the traditional, C# task sense though.
@@ -134,10 +163,12 @@ namespace Permafrost.World
                         l++;
                     }
                 }
-                PerlinResultData data = new PerlinResultData();
-                data.heights = heights;
-                data.forestationFactor = forestation / (float)l;
-                data.dryFactor = dry / (float)l;
+                PerlinResultData data = new()
+                {
+                    heights = heights,
+                    forestationFactor = forestation / (float)l,
+                    dryFactor = dry / (float)l
+                };
                 return data;
             }, cancel);
         }
@@ -263,37 +294,16 @@ namespace Permafrost.World
             float lerp1, lerp2, fx, fy;
             lerp1 = math.lerp(PerlinGradient(aa, xf, yf, 0), PerlinGradient(ba, xf - 1, yf, 0), u);
             lerp2 = math.lerp(PerlinGradient(ab, xf, yf - 1, 0), PerlinGradient(bb, xf - 1, yf - 1, 0), u);
-            fx = math.lerp(biomes[xi].y, biomes[PositiveMod(xi - 1, biomes.Length)].y, xf);
-            fy = math.lerp(biomes[yi].y, biomes[PositiveMod(yi - 1, biomes.Length)].y, yf);
+            fx = math.lerp(biomes[xi].y, biomes[PositiveMod(xi + 1, biomes.Length)].y, xf);
+            fy = math.lerp(biomes[yi].y, biomes[PositiveMod(yi + 1, biomes.Length)].y, yf);
             f += (fx + fy) / 2;
-            fx = math.lerp(biomes[xi].z, biomes[PositiveMod(xi - 1, biomes.Length)].z, xf);
-            fy = math.lerp(biomes[yi].z, biomes[PositiveMod(yi - 1, biomes.Length)].z, yf);
+            fx = math.lerp(biomes[xi].z, biomes[PositiveMod(xi + 1, biomes.Length)].z, xf);
+            fy = math.lerp(biomes[yi].z, biomes[PositiveMod(yi + 1, biomes.Length)].z, yf);
             d += (fx + fy) / 2;
 
             return ((math.lerp(lerp1, lerp2, v) + 1) / 2);
         }
-
-        /// <summary>
-        /// Returns a copy of the heightmap permutation array.
-        /// </summary>
-        /// <returns></returns>
-        public byte[] GetHeightmapPermutation()
-        {
-            byte[] temp = new byte[permutationTableSize];
-            Array.Copy(heightPermutation, temp, permutationTableSize);
-            return temp;
-        }
-
-        /// <summary>
-        /// Returns a copy of the biomemap permutation array.
-        /// </summary>
-        /// <returns></returns>
-        public float3[] GetBiomemapPermutation()
-        {
-            float3[] temp = new float3[permutationTableSize];
-            Array.Copy(biomePermutation, temp, permutationTableSize);
-            return temp;
-        }
+        #endregion
     }
 }
 // 83 SLOC

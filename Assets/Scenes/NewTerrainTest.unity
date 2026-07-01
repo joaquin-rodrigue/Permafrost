@@ -252,6 +252,7 @@ GameObject:
   - component: {fileID: 1551831098}
   - component: {fileID: 1551831099}
   - component: {fileID: 1551831100}
+  - component: {fileID: 1551831101}
   m_Layer: 0
   m_Name: MasterGenerator
   m_TagString: TerrainGenerator
@@ -288,16 +289,19 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   terrainTextures:
   - {fileID: 8574412962073106934, guid: a53f0c685d202ab489e62228b7d51d54, type: 2}
+  - {fileID: 8574412962073106934, guid: e3def57d44810c841a1695f11a7fbc40, type: 2}
+  - {fileID: 8574412962073106934, guid: bb58d1e519fa6c047b6f9ec7b1667595, type: 2}
   terrainMaterial: {fileID: 2100000, guid: 9a8d671f79183164184461e9668ed951, type: 2}
   terrainCellSize: 64
   terrainDetailResolution: 128
   terrainDetailResolutionPerPatch: 16
+  centerCellCoordinates: {x: 128, y: 128}
   useRandomMasterSeed: 1
   setMasterSeed: 0
   useRandomObjectSeed: 1
   setObjectSeed: 0
   debugEnabled: 1
-  extensiveDebug: 0
+  extensiveDebug: 1
 --- !u!114 &1551831099
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -379,6 +383,32 @@ MonoBehaviour:
     serializedVersion: 2
     m_Bits: 64
   heightRaycastDistance: 400
+  debugEnabled: 0
+--- !u!114 &1551831101
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1551831096}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 13048f643e5eb8640bae0c134dca9530, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  maxActivePathsCount: 100
+  chanceToForkPaths: 0.1
+  pathForkAttemptsPerBlock: 2
+  chanceToEndPaths: 0.01
+  minimumForksPerPath: 1
+  randomWalkChance: 0.1
+  pathTextureLayerIndex: 1
+  maxLoopCountDuringGenerationSteps: 1000
+  objectsToClearWhenOnPaths:
+    serializedVersion: 2
+    m_Bits: 129
+  maxObjectsToDeleteDuringClear: 5
+  heightRaycastDistance: 0
   debugEnabled: 1
 --- !u!1 &2091764198
 GameObject:

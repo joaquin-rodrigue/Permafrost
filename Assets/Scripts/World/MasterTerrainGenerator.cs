@@ -7,7 +7,6 @@ using UnityEngine;
 namespace Permafrost.World
 {
     /// <summary>
-    /// TODO: object generation not completed!
     /// TODO: store to files?
     /// TODO: load from files?
     /// The terrain generator's main component. Coordinates all terrain cell generation,
@@ -16,6 +15,7 @@ namespace Permafrost.World
     [RequireComponent(typeof(SimplexGenerator))]
     public class MasterTerrainGenerator : MonoBehaviour
     {
+        #region Data
         [Header("Terrain Object Settings")]
         [SerializeField] private TerrainLayer[] terrainTextures;
         [SerializeField] private Material terrainMaterial;
@@ -49,14 +49,20 @@ namespace Permafrost.World
         private bool featuresActive;
         private bool pathsActive;
 
+        private List<Vector3> generationQueue;
+        private bool generating;
+
         [Header("Debug")]
         [SerializeField] private bool debugEnabled;
         [SerializeField] private bool extensiveDebug;
+        #endregion
 
+        #region Unity Methods
         // Mostly just some starting checks/setup
         void Awake()
         {
             activeTerrainObjects = new();
+            generationQueue = new();
             noiseGenerator = GetComponent<SimplexGenerator>();
             if (terrainMaterial == null)
             {
@@ -96,6 +102,18 @@ namespace Permafrost.World
             }
         }
 
+        private void Update()
+        {
+            if (!generating && generationQueue.Count > 0)
+            {
+                Vector3 pos = generationQueue[0];
+                generationQueue.RemoveAt(0);
+                GenerateNewBlock(pos);
+            }
+        }
+        #endregion
+
+        #region The Basics
         /// <summary>
         /// This is the part that must be set up on a level-by-level basis.
         /// This includes resetting seed numbers/RNG objects, generating noise,
@@ -147,7 +165,9 @@ namespace Permafrost.World
             // todo: do we need to Activate() again or do we just need to reset the seed data? idk
             Activate();
         }
+        #endregion
 
+        #region Making Some Terra Ain
         private void LoadBlockFromFile(Vector3 position)
         {
 
@@ -170,6 +190,13 @@ namespace Permafrost.World
         /// <param name="position">The grid position to spawn the object at.</param>
         public void GenerateNewBlock(Vector3 position)
         {
+            if (generating)
+            {
+                generationQueue.Add(position);
+                return;
+            }
+            generating = true;
+
             if (debugEnabled)
             {
                 Debug.Log($"[MasterTerrainGenerator] Generating cell at: {position}");
@@ -191,6 +218,20 @@ namespace Permafrost.World
             data.heightmapResolution = terrainCellSize + 1;
             data.size = new Vector3(terrainCellSize, 500, terrainCellSize);
             data.SetDetailResolution(terrainDetailResolution, terrainDetailResolutionPerPatch);
+            data.alphamapResolution = terrainCellSize + 1;
+
+            // texturize
+            float[,,] alphamaps = data.GetAlphamaps(0, 0, terrainCellSize + 1, terrainCellSize + 1);
+            int k = alphamaps.GetLength(2);
+            for (int i = 0; i < alphamaps.GetLength(0); i++)
+            {
+                for (int j = 0; j < alphamaps.GetLength(1); j++)
+                {
+                    alphamaps[i, j, 0] = 0.5f;
+                    alphamaps[i, j, k - 1] = 0.5f;
+                }
+            }
+            data.SetAlphamaps(0, 0, alphamaps);
 
             Terrain newBlock = Terrain.CreateTerrainGameObject(data).GetComponent<Terrain>();
             activeTerrainObjects.Add(newBlock.gameObject);
@@ -232,10 +273,7 @@ namespace Permafrost.World
             if (extensiveDebug)
             {
                 totalTime = System.DateTime.Now.Ticks - time;
-                if (totalTime / 1000.0 < 16.6) Debug.Log($"[MasterTerrainGenerator] Simplex math completed in {totalTime / 1000.0} ms (nice)"); // not exactly 1 frame due to other things happening in a frame but still good
-                else if (totalTime / 1000.0 < 100.0) Debug.Log($"[MasterTerrainGenerator] Simplex math completed in {totalTime / 1000.0} ms");
-                else if (totalTime / 1000.0 < 500.0) Debug.LogWarning($"[MasterTerrainGenerator] Simplex math completed in {totalTime / 1000.0} ms, quite long"); // honestly this is probably where the math falls, could be worse
-                else Debug.LogError($"[MasterTerrainGenerator] Simplex math completed in {totalTime / 1000.0} ms, exceptionally long");
+                PrintPhaseTiming(totalTime, "Simplex math completed");
             }
 
             // we set some data onto the terrain object
@@ -257,10 +295,7 @@ namespace Permafrost.World
             if (extensiveDebug)
             {
                 totalTime = System.DateTime.Now.Ticks - time;
-                if (totalTime / 1000.0 < 16.6) Debug.Log($"[MasterTerrainGenerator] Paths completed in {totalTime / 1000.0} ms (nice)"); 
-                else if (totalTime / 1000.0 < 100.0) Debug.Log($"[MasterTerrainGenerator] Paths completed in {totalTime / 1000.0} ms");
-                else if (totalTime / 1000.0 < 500.0) Debug.LogWarning($"[MasterTerrainGenerator] Paths completed in {totalTime / 1000.0} ms, quite long");
-                else Debug.LogError($"[MasterTerrainGenerator] Paths completed in {totalTime / 1000.0} ms, exceptionally long");
+                PrintPhaseTiming(totalTime, "Paths completed");
             }
 
             // foliage features
@@ -269,11 +304,33 @@ namespace Permafrost.World
             if (extensiveDebug)
             {
                 totalTime = System.DateTime.Now.Ticks - time;
-                if (totalTime / 1000.0 < 16.6) Debug.Log($"[MasterTerrainGenerator] Foliage features completed in {totalTime / 1000.0} ms (nice)");
-                else if (totalTime / 1000.0 < 100.0) Debug.Log($"[MasterTerrainGenerator] Foliage features completed in {totalTime / 1000.0} ms");
-                else if (totalTime / 1000.0 < 500.0) Debug.LogWarning($"[MasterTerrainGenerator] Foliage features completed in {totalTime / 1000.0} ms, quite long");
-                else Debug.LogError($"[MasterTerrainGenerator] Foliage features completed in {totalTime / 1000.0} ms, exceptionally long");
+                PrintPhaseTiming(totalTime, "Foliage features completed");
             }
+
+            // path cleanup
+            time = System.DateTime.Now.Ticks;
+            if (pathsActive) pathGenerator.CleanupPathsFor(terrainBlock.gameObject);
+            if (extensiveDebug)
+            {
+                totalTime = System.DateTime.Now.Ticks - time;
+                PrintPhaseTiming(totalTime, "Paths cleaned up");
+            }
+
+            generating = false;
+        }
+
+        /// <summary>
+        /// Helper method for printing debug timing per generation phase.
+        /// </summary>
+        /// <param name="timeTaken">How many ticks long the phase was, using DateTime.Ticks.</param>
+        /// <param name="phaseMessage">The message describing this phase</param>
+        private void PrintPhaseTiming(long timeTaken, string phaseMessage)
+        {
+            double milliseconds = timeTaken / 1000.0;
+            if (milliseconds < 16.6) Debug.Log($"[MasterTerrainGenerator] {phaseMessage} in {milliseconds} ms (nice)");
+            else if (milliseconds < 100.0) Debug.Log($"[MasterTerrainGenerator] {phaseMessage} in {milliseconds} ms");
+            else if (milliseconds < 500.0) Debug.LogWarning($"[MasterTerrainGenerator] {phaseMessage} in {milliseconds} ms, quite long");
+            else Debug.LogError($"[MasterTerrainGenerator] {phaseMessage} in {milliseconds} ms, exceptionally long");
         }
 
         /// <summary>
@@ -315,6 +372,7 @@ namespace Permafrost.World
                 current.SetNeighbors(current.leftNeighbor, current.topNeighbor, current.rightNeighbor, bottomNeighbor);
             }
         }
+        #endregion
     }
 }
 // 101 SLOC
