@@ -1,5 +1,7 @@
 using System.Collections.Generic;
+using System.IO;
 using UnityEngine;
+using UnityEngine.ProBuilder.MeshOperations;
 
 namespace Permafrost.World
 {
@@ -19,31 +21,31 @@ namespace Permafrost.World
         public float radius;
         public int forks;
         public Vector2 currentCellLocation;
-        public List<Vector2> currentPathPoints;
+        public List<Vector3> currentPathPoints;
         public Vector2 direction;
 
         /// <summary>
         /// Makes a path using the provided radius, setting just one point and the provided direction.
         /// </summary>
-        public Path(float radius, Vector2 cellLocation, Vector2 firstPoint, Vector2 direction)
+        public Path(float rad, Vector2 cellLocation, Vector3 firstPoint, Vector2 direct)
         {
             markedForDeath = false;
-            this.radius = radius;
+            radius = rad;
             forks = 0;
 
             currentCellLocation = cellLocation;
-            currentPathPoints = new List<Vector2>
+            currentPathPoints = new List<Vector3>
             {
                 firstPoint
             };
-            this.direction = direction;
+            direction = direct;
         }
 
         /// <summary>
         /// Adds a point to the current list of path points this chunk.
         /// </summary>
         /// <param name="point">The point to add to the path.</param>
-        public void AddPoint(Vector2 point)
+        public void AddPoint(Vector3 point)
         {
             currentPathPoints.Add(point);
         }
@@ -56,18 +58,19 @@ namespace Permafrost.World
         /// </summary>
         /// <param name="cellLocation">The cell's x and y coordinate this path is entering.</param>
         /// <param name="convertedLastPathPoint">The latest point in this path, with its position adjusted to be relative to the new cell it is entering.</param>
-        public void MoveToNewCell(Vector2 cellLocation, Vector2 convertedLastPathPoint)
+        public void MoveToNewCell(Vector2 cellLocation, Vector3 convertedLastPathPoint)
         {
             currentPathPoints.Clear();
             currentPathPoints.Add(convertedLastPathPoint);
             currentCellLocation = cellLocation;
+            Debug.Log(cellLocation + " " + currentCellLocation);
         }
 
         /// <summary>
         /// Returns the latest point in this path for the current cell.
         /// </summary>
         /// <returns>The latest path point for this cell.</returns>
-        public readonly Vector2 GetLatestPoint()
+        public readonly Vector3 GetLatestPoint()
         {
             return currentPathPoints[^1];
         }
@@ -78,6 +81,8 @@ namespace Permafrost.World
     /// Generates the paths that show up in-world. This involves two different phases;
     /// the first is updating the underlying path data, and the second is updating the
     /// current chunk heights and removing objects that may be overlapping the path.
+    /// TODO: forgot that paths were a struct and therefore passed by value, some bandaid fixes were made but i dont want to deal with that right now
+    /// todo: ok its just generally fucked but i cant be bothered tonight
     /// </summary>
     [RequireComponent(typeof(MasterTerrainGenerator))]
     public class PathGenerator : MonoBehaviour
@@ -108,16 +113,19 @@ namespace Permafrost.World
         [SerializeField] private int maxLoopCountDuringGenerationSteps = 1000;
         [Tooltip("When paths enter their cleanup phase, this layer mask is used to determine what objects overlapping the path need to be destroyed.")]
         [SerializeField] private LayerMask objectsToClearWhenOnPaths;
+        [SerializeField] private LayerMask terrainLayerMask;
         [Tooltip("When paths enter their cleanup pahse, this is the max number of objects that will be deleted if overlapping any given path point.")]
         [SerializeField] private int maxObjectsToDeleteDuringClear = 5;
         [SerializeField] private float heightRaycastDistance;
 
         private MasterTerrainGenerator masterGenerator;
         private Path centerRoad; // exclusively the only path that never ends
+        private Path centerRoad2; // the second directino of the center road
         private List<Path> activePaths; // todo: benchmark? unsure if the default implementation is linked list or not
         private List<Path> newlyFormedPaths; //  yep
 
         private Collider[] overlapBuffer;
+        private bool centerRoadConstructed = false;
 
         [Header("Debug")]
         [SerializeField] private bool debugEnabled;
@@ -129,7 +137,7 @@ namespace Permafrost.World
         {
             masterGenerator = GetComponent<MasterTerrainGenerator>();
             overlapBuffer = new Collider[maxObjectsToDeleteDuringClear];
-            activePaths = new List<Path>(maxActivePathsCount);
+            activePaths = new List<Path>();
             newlyFormedPaths = new List<Path>();
         }
         #endregion
@@ -165,29 +173,43 @@ namespace Permafrost.World
             int pointsBetweenForks = expectedPointsInCell / pathForkAttemptsPerBlock;
 
             // if this is the center chunk, we only make the starter road
-            if (dat.CellLocation.x == masterGenerator.CenterCellLocation.x && dat.CellLocation.z == masterGenerator.CenterCellLocation.y)
+            if (dat.CellLocation.x == masterGenerator.CenterCellLocation.x && dat.CellLocation.z == masterGenerator.CenterCellLocation.y && !centerRoadConstructed)
             {
+                RaycastHit hit;
+                Physics.Raycast(new Vector3(32, heightRaycastDistance, 32), Vector3.down, out hit, heightRaycastDistance, terrainLayerMask, QueryTriggerInteraction.Ignore);
                 centerRoad = new Path(
-                    4, 
-                    dat.CellLocation, 
-                    new Vector2(cellBounds.center.x, cellBounds.center.z), 
+                    4,
+                    new Vector2(dat.CellLocation.x, dat.CellLocation.z),
+                    new Vector3(cellBounds.center.x, hit.point.y, cellBounds.center.z),
                     RNG.NextDouble() > 0.5f ? Vector2.left : Vector2.down);
+                centerRoadConstructed = true;
+                if (debugEnabled) Debug.Log($"[PathGenerator] Road cell location: {dat.CellLocation}");
             }
             ProliferateCenterRoad(terrain, cellBounds, RNG, dat, pointsBetweenForks);
 
             // proliferate all paths
-            foreach (Path p in activePaths)
+            for (int i = 0; i < activePaths.Count; i++)
             {
-                ProliferatePath(terrain, cellBounds, RNG, dat, pointsBetweenForks, p);
+                activePaths[i] = ProliferatePath(terrain, cellBounds, RNG, dat, pointsBetweenForks, activePaths[i]);
             }
             // and then proliferate the new paths that can't fork yet
-            foreach (Path p in newlyFormedPaths)
+            for (int i = 0; i < newlyFormedPaths.Count; i++)
             {
-                ProliferatePathUnforking(terrain, cellBounds, RNG, dat, p);
+                newlyFormedPaths[i] = ProliferatePathUnforking(terrain, cellBounds, RNG, dat, newlyFormedPaths[i]);
             }
             foreach (Path p in newlyFormedPaths)
             {
                 activePaths.Add(p);
+            }
+            newlyFormedPaths.Clear();
+            // and lastly remove all paths marked for death
+            foreach (Path p in activePaths)
+            {
+                if (p.markedForDeath) newlyFormedPaths.Add(p);
+            }
+            foreach (Path p in newlyFormedPaths)
+            {
+                activePaths.Remove(p);
             }
             newlyFormedPaths.Clear();
         }
@@ -203,9 +225,14 @@ namespace Permafrost.World
         private void ProliferateCenterRoad(GameObject terrain, Bounds cellBounds, System.Random RNG, ChunkData dat, int forkDistance) 
         {
             // using && here to make the road go in both directions if possible
-            if (dat.CellLocation.x != centerRoad.currentCellLocation.x && dat.CellLocation.z != centerRoad.currentCellLocation.y) return;
+            // ignore that it caused bugs
+            if (dat.CellLocation.x != centerRoad.currentCellLocation.x || dat.CellLocation.z != centerRoad.currentCellLocation.y)
+            {
+                if (debugEnabled) Debug.Log($"[PathGenerator] Cell location in data: {dat.CellLocation}, center road location: {centerRoad.currentCellLocation}");
+                return;
+            }
 
-            Vector2 cur = centerRoad.GetLatestPoint();
+            Vector3 cur = centerRoad.GetLatestPoint();
             int i = 1;
             do
             {
@@ -213,20 +240,25 @@ namespace Permafrost.World
                 if (RNG.NextDouble() >= randomWalkChance)
                 {
                     // normal case: just proceed in direction
-                    cur += centerRoad.direction;
+                    cur += new Vector3(
+                        centerRoad.direction.x,
+                        0,
+                        centerRoad.direction.y
+                    );
                     centerRoad.AddPoint(cur);
                 }
                 else
                 {
                     // funky case: random walk
                     // its not quite a random walk but it's close enough and it can cause some funky
-                    cur += new Vector2(
+                    cur += new Vector3(
                         centerRoad.direction.x + RNG.Next(-1, 1),
+                        0,
                         centerRoad.direction.y + RNG.Next(-1, 1)
                     );
                     centerRoad.AddPoint(cur);
                 }
-
+                //Debug.Log(cur);
                 // fork roll
                 if (i % forkDistance == 0)
                 {
@@ -236,12 +268,18 @@ namespace Permafrost.World
                 }
                 i++;
             } 
-            while ((cur.x < cellBounds.size.x && cur.x > 0 && cur.y < cellBounds.size.z && cur.y > 0) || i < 5);
+            while ((cur.x < cellBounds.size.x && cur.x > 0 && cur.z < cellBounds.size.z && cur.z > 0) || i < 5);
             // the i < 5 is a somewhat arbitrary number, but it handles the case that due to a random walk, the path
             // moves back to one of the edge coordinates without ever leaving the edge coordinate of a chunk. 5 is the
             // arbitrary part, i havent really done any math to figure out how often this would occur, but the chance
             // that any given path rolls 5 times backwards is wild. it's possible that a path could curve around to a
             // border, but this is the price im paying to make it work more reliably.
+            if (debugEnabled)
+            {
+                string p = "";
+                foreach (Vector3 point in centerRoad.currentPathPoints) p += point + ", ";
+                Debug.Log($"[PathGenerator] Center road updated, path: {p}, location: {centerRoad.currentCellLocation}");
+            }
         }
 
         /// <summary>
@@ -266,8 +304,12 @@ namespace Permafrost.World
                     (float)(RNG.NextDouble() * 2 - 1)
                 ).normalized
             );
-            activePaths.Add(newPath);
+            newlyFormedPaths.Add(newPath);
             // note center road doesnt have its fork count incremented cause it never ends so we dont really give a fuck
+            if (debugEnabled)
+            {
+                Debug.Log($"[PathGenerator] New path made, start point: {newPath.GetLatestPoint()}, direction: {newPath.direction}");
+            }
         }
 
         /// <summary>
@@ -279,12 +321,12 @@ namespace Permafrost.World
         /// <param name="dat">The ChunkData attached to the given terrain cell.</param>
         /// <param name="forkDistance">The number of path points between fork attempts.</param>
         /// <param name="path">The Path being proliferated.</param>
-        private void ProliferatePath(GameObject terrain, Bounds cellBounds, System.Random RNG, ChunkData dat, int forkDistance, Path path)
+        private Path ProliferatePath(GameObject terrain, Bounds cellBounds, System.Random RNG, ChunkData dat, int forkDistance, Path path)
         {
-            if (dat.CellLocation.x != path.currentCellLocation.x || dat.CellLocation.z != path.currentCellLocation.y) return;
-            if (path.markedForDeath) return;
+            if (dat.CellLocation.x != path.currentCellLocation.x || dat.CellLocation.z != path.currentCellLocation.y) return path;
+            if (path.markedForDeath) return path;
 
-            Vector2 cur = path.GetLatestPoint();
+            Vector3 cur = path.GetLatestPoint();
             int i = 1;
             float x = cur.x, y = cur.y;
             do
@@ -302,7 +344,7 @@ namespace Permafrost.World
                     x += path.direction.x + RNG.Next(-1, 1);
                     y += path.direction.y + RNG.Next(-1, 1);
                 }
-                cur = new(Mathf.Round(x), Mathf.Round(y));
+                cur = new(Mathf.Round(x), 0, Mathf.Round(y));
                 path.AddPoint(cur);
 
                 // fork roll
@@ -310,7 +352,7 @@ namespace Permafrost.World
                 {
                     // mostly to ensure that we only do the inner rng roll when checks are needed
                     bool roll = RNG.NextDouble() < chanceToForkPaths;
-                    if (roll) ForkPath(terrain, cellBounds, RNG, dat, path);
+                    if (roll) path = ForkPath(terrain, cellBounds, RNG, dat, path);
                 }
                 // kill roll
                 if (path.forks >= minimumForksPerPath)
@@ -319,12 +361,20 @@ namespace Permafrost.World
                     if (roll)
                     {
                         path.markedForDeath = true;
-                        return;
+                        return path;
                     }
                 }
                 i++;
             }
-            while ((cur.x < cellBounds.size.x && cur.x > 0 && cur.y < cellBounds.size.z && cur.y > 0) || i < 5);
+            while ((cur.x < cellBounds.size.x && cur.x > 0 && cur.z < cellBounds.size.z && cur.z > 0) || i < 5);
+
+            if (debugEnabled)
+            {
+                string p = "";
+                foreach (Vector3 point in path.currentPathPoints) p += point + ", ";
+                Debug.Log($"[PathGenerator] Path extended, points: {p} forks: {path.forks}, dead: {path.markedForDeath}");
+            }
+            return path;
         }
 
         /// <summary>
@@ -335,10 +385,10 @@ namespace Permafrost.World
         /// <param name="RNG">The Master Terrain Generator's Object RNG.</param>
         /// <param name="dat">The ChunkData attached to the given terrain cell.</param>
         /// <param name="original">The Path being proliferated.</param>
-        private void ForkPath(GameObject terrain, Bounds cellBounds, System.Random RNG, ChunkData dat, Path original)
+        private Path ForkPath(GameObject terrain, Bounds cellBounds, System.Random RNG, ChunkData dat, Path original)
         {
-            if (dat.CellLocation.x != original.currentCellLocation.x || dat.CellLocation.z != original.currentCellLocation.y) return;
-            if (activePaths.Count >= maxActivePathsCount) return;
+            if (dat.CellLocation.x != original.currentCellLocation.x || dat.CellLocation.z != original.currentCellLocation.y) return original;
+            if (activePaths.Count >= maxActivePathsCount) return original;
 
             Path newPath = new(
                 2, // radius
@@ -351,6 +401,11 @@ namespace Permafrost.World
             );
             newlyFormedPaths.Add(newPath);
             original.forks++;
+            if (debugEnabled)
+            {
+                Debug.Log($"[PathGenerator] New path forked, position: {newPath.GetLatestPoint()}, direction: {newPath.direction}");
+            }
+            return original;
         }
 
         /// <summary>
@@ -361,13 +416,13 @@ namespace Permafrost.World
         /// <param name="RNG">The Master Terrain Generator's Object RNG.</param>
         /// <param name="dat">The ChunkData attached to the given terrain cell.</param>
         /// <param name="path">The Path being proliferated.</param>
-        private void ProliferatePathUnforking(GameObject terrain, Bounds cellBounds, System.Random RNG, ChunkData dat, Path path) 
+        private Path ProliferatePathUnforking(GameObject terrain, Bounds cellBounds, System.Random RNG, ChunkData dat, Path path) 
         {
-            if (dat.CellLocation.x != path.currentCellLocation.x || dat.CellLocation.z != path.currentCellLocation.y) return;
-            if (path.markedForDeath) return;
+            if (dat.CellLocation.x != path.currentCellLocation.x || dat.CellLocation.z != path.currentCellLocation.y) return path;
+            if (path.markedForDeath) return path;
 
-            Vector2 cur = path.GetLatestPoint();
-            float x = cur.x, y = cur.y;
+            Vector3 cur = path.GetLatestPoint();
+            float x = cur.x, y = cur.z;
             int i = 1;
             do
             {
@@ -384,13 +439,21 @@ namespace Permafrost.World
                     x += path.direction.x + RNG.Next(-1, 1);
                     y += path.direction.y + RNG.Next(-1, 1);
                 }
-                cur = new(Mathf.Round(x), Mathf.Round(y));
+                cur = new(Mathf.Round(x), 0, Mathf.Round(y));
                 path.AddPoint(cur);
 
                 // fork and kill roll unneeded
                 i++;
             }
-            while ((cur.x < cellBounds.size.x && cur.x > 0 && cur.y < cellBounds.size.z && cur.y > 0) || i < 5);
+            while ((cur.x < cellBounds.size.x && cur.x > 0 && cur.z < cellBounds.size.z && cur.z > 0) || i < 5);
+
+            if (debugEnabled)
+            {
+                string p = "";
+                foreach (Vector3 point in path.currentPathPoints) p += point + ", ";
+                Debug.Log($"[PathGenerator] Path (w/o forking) updated, points: {p}");
+            }
+            return path;
         }
         #endregion
 
@@ -409,11 +472,19 @@ namespace Permafrost.World
             ChunkData dat = terrain.GetComponent<ChunkData>();
 
             // first, center road
-            CleanupPath(terrain, cellBounds, dat, heights, alphas, centerRoad);
+            centerRoad = CleanupPath(terrain, cellBounds, dat, heights, alphas, centerRoad);
+            if (debugEnabled)
+            {
+                Debug.Log($"[PathGenerator] {centerRoad.currentCellLocation}");
+            }
 
             // finally, update the terrain heights + textures
             terrain.GetComponent<Terrain>().terrainData.SetHeights(0, 0, heights);
             terrain.GetComponent<Terrain>().terrainData.SetAlphamaps(0, 0, alphas);
+            if (debugEnabled)
+            {
+                Debug.Log($"[PathGenerator] {centerRoad.currentCellLocation}");
+            }
         }
 
         /// <summary>
@@ -425,36 +496,85 @@ namespace Permafrost.World
         /// <param name="heights">The heights array for the current terrain cell.</param>
         /// <param name="alphas">The alphamap/textures array for the current terrain cell.</param>
         /// <param name="path">The current path to be updated.</param>
-        private void CleanupPath(GameObject terrain, Bounds cellBounds, ChunkData dat, float[,] heights, float[,,] alphas, Path path)
+        private Path CleanupPath(GameObject terrain, Bounds cellBounds, ChunkData dat, float[,] heights, float[,,] alphas, Path path)
         {
-            if (dat.CellLocation.x != path.currentCellLocation.x || dat.CellLocation.z != path.currentCellLocation.y) return;
+            if (dat.CellLocation.x != path.currentCellLocation.x || dat.CellLocation.z != path.currentCellLocation.y) return path;
 
             // start with the overlap sphering
-            foreach (Vector2 point in path.currentPathPoints)
+            foreach (Vector3 point in path.currentPathPoints)
             {
+                /*float x = point.x + (path.currentCellLocation.x - masterGenerator.CenterCellLocation.x) * masterGenerator.TerrainCellSize;
+                float y = point.z + (path.currentCellLocation.y - masterGenerator.CenterCellLocation.y) * masterGenerator.TerrainCellSize;
+                Debug.Log(x + " " + y);*/
                 //int i = Physics.OverlapSphereNonAlloc(point, path.radius, overlapBuffer, objectsToClearWhenOnPaths, QueryTriggerInteraction.Ignore);
-                int i = Physics.OverlapCapsuleNonAlloc(new Vector3(point.x, 0, point.y), new Vector3(point.x, heightRaycastDistance, point.y), path.radius, overlapBuffer, objectsToClearWhenOnPaths, QueryTriggerInteraction.Ignore);
+                int i = Physics.OverlapSphereNonAlloc(
+                    point,
+                    path.radius, 
+                    overlapBuffer, 
+                    objectsToClearWhenOnPaths, 
+                    QueryTriggerInteraction.Ignore);
                 for (; i > 0; i--)
                 {
                     Destroy(overlapBuffer[i - 1].gameObject);
+                }
+                if (i > 0 && debugEnabled)
+                {
+                    Debug.Log($"[PathGenerator] {i} objects cleared from path");
                 }
             }
 
             int min = (int)Mathf.Max(-path.radius, 0);
             int max = (int)Mathf.Min(path.radius, cellBounds.size.x);
             // now we modify the terrain n textures
-            foreach (Vector2 point in path.currentPathPoints)
+            foreach (Vector3 point in path.currentPathPoints)
             {
                 for (int i = min; i < max; i++)
                 {
                     for (int j = min; j < max; j++)
                     {
-                        heights[(int)point.x + i, (int)point.y + j] -= 0.00025f;
-                        alphas[(int)point.x + i, (int)point.y + j, pathTextureLayerIndex] = 0.5f;
-                        alphas[(int)point.x + i, (int)point.y + j, 0] = 0;
+                        try
+                        {
+                            heights[(int)point.x + i, (int)point.z + j] -= 0.00025f;
+                            alphas[(int)point.x + i, (int)point.z + j, pathTextureLayerIndex] = 0.5f;
+                            alphas[(int)point.x + i, (int)point.z + j, 0] = 0;
+                        }
+                        catch (System.IndexOutOfRangeException)
+                        {
+                            continue;
+                        }
                     }
                 }
             }
+
+            // update path
+            Vector3 poi = path.GetLatestPoint();
+            Vector2 newLocation = path.currentCellLocation;
+            if (poi.x == 0)
+            {
+                poi.x = cellBounds.size.x;
+                newLocation.x--;
+            }
+            else if (poi.z == 0)
+            {
+                poi.z = cellBounds.size.y;
+                newLocation.y--;
+            }
+            else if (poi.x == cellBounds.size.x)
+            {
+                poi.x = 0;
+                newLocation.x++;
+            }
+            else if (poi.y == cellBounds.size.y)
+            {
+                poi.z = 0;
+                newLocation.y++;
+            }
+            path.MoveToNewCell(newLocation, poi);
+            if (debugEnabled)
+            {
+                Debug.Log($"[PathGenerator] Path moved to cell {newLocation}, {path.currentCellLocation}");
+            }
+            return path;
         }
         #endregion
     }

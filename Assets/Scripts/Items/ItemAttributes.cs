@@ -12,6 +12,7 @@ namespace Permafrost.Items
         public int Type;
         [Tooltip("Treated as an ID string; if two items have the same ID expect bugs!")]
         public string Name;
+        public string BehaviorName;
         public int MaxStackSize;
 
         [Header("Physical")]

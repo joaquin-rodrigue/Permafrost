@@ -297,11 +297,11 @@ MonoBehaviour:
   terrainDetailResolutionPerPatch: 16
   centerCellCoordinates: {x: 128, y: 128}
   useRandomMasterSeed: 1
-  setMasterSeed: 0
+  setMasterSeed: 1
   useRandomObjectSeed: 1
   setObjectSeed: 0
   debugEnabled: 1
-  extensiveDebug: 1
+  extensiveDebug: 0
 --- !u!114 &1551831099
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -407,8 +407,11 @@ MonoBehaviour:
   objectsToClearWhenOnPaths:
     serializedVersion: 2
     m_Bits: 129
+  terrainLayerMask:
+    serializedVersion: 2
+    m_Bits: 64
   maxObjectsToDeleteDuringClear: 5
-  heightRaycastDistance: 0
+  heightRaycastDistance: 120
   debugEnabled: 1
 --- !u!1 &2091764198
 GameObject:

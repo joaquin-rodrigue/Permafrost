@@ -1,5 +1,5 @@
 using Permafrost.Items;
-
+using Permafrost.UI;
 using System.Collections;
 using UnityEngine;
 
@@ -37,6 +37,7 @@ namespace Permafrost.Player
         [Header("Component References")]
         [SerializeField] private GameMaster gameMaster;
         [SerializeField] private PlayerController playerController;
+        [SerializeField] private PlayerUI uiController;
 
         [Header("Debug")]
         [SerializeField] private bool debugEnabled;
@@ -46,6 +47,7 @@ namespace Permafrost.Player
         // Setup (very simple for once)
         private void Awake()
         {
+            inventory = new Item[inventorySize];
             EmptyInventory();
         }
 
@@ -56,6 +58,15 @@ namespace Permafrost.Player
             ItemUpdate();
             UseItem();
             DropItem();
+            ChangeSelectedItem();
+        }
+
+        private void OnTriggerEnter(Collider other)
+        {
+            if (other.TryGetComponent(out Pickupable pickup))
+            {
+                PickupItem(pickup);
+            }
         }
         #endregion
 
@@ -112,6 +123,7 @@ namespace Permafrost.Player
             if (SelectedItem.GetCount() <= 0)
             {
                 inventory[SelectedItemIndex] = null;
+                if (uiController != null) uiController.UpdateInventoryUI(this, SelectedItemIndex);
             }
         }
 
@@ -134,6 +146,7 @@ namespace Permafrost.Player
             StartCoroutine(DropItemCooldown());
             GameObject theItem = Instantiate(SelectedItem.Stats.Prefab, transform.position + transform.forward, Quaternion.identity);
             DecrementSelectedItemCount();
+            if (uiController != null) uiController.UpdateInventoryUI(this, SelectedItemIndex);
         }
 
         /// <summary>
@@ -150,6 +163,27 @@ namespace Permafrost.Player
             yield return new WaitForSeconds(currentDropItemTime);
             CanDropItem = true;
         }
+
+        /// <summary>
+        /// Changes the currently selected item, if either the next item or previous item inputs have been pressed this frame.
+        /// </summary>
+        private void ChangeSelectedItem()
+        {
+            bool changed = playerController.NextItem || playerController.PreviousItem;
+            if (playerController.NextItem)
+            {
+                SelectedItemIndex++;
+                if (SelectedItemIndex >= inventorySize) SelectedItemIndex = 0;
+            }
+            else if (playerController.PreviousItem)
+            {
+                SelectedItemIndex--;
+                if (SelectedItemIndex < 0) SelectedItemIndex = inventorySize - 1;
+            }
+
+            if (!changed) return;
+            
+        }
         #endregion
 
         #region Inventory Stuff
@@ -160,6 +194,7 @@ namespace Permafrost.Player
         {
             inventory = new Item[inventorySize];
             AvailableInventorySlots = inventorySize;
+            if (uiController != null) uiController.UpdateInventoryUI(this, SelectedItemIndex);
         }
 
         /// <summary>
@@ -235,6 +270,23 @@ namespace Permafrost.Player
         }
 
         /// <summary>
+        /// Removes an item from in-world to add to the inventory, if possible. If not possible, the item is left on the ground.
+        /// </summary>
+        /// <param name="pickup">The <c>Pickupable</c> component attached to the in-world item's prefab.</param>
+        public void PickupItem(Pickupable pickup)
+        {
+            if (pickup.Collected) return;
+            Item i = new(pickup.Item);
+            if (AddItem(i))
+            {
+                pickup.Collect();
+                Destroy(pickup.gameObject);
+                // todo: pickup sfx
+                if (uiController != null) uiController.UpdateInventoryUI(this, SelectedItemIndex);
+            }
+        }
+
+        /// <summary>
         /// Adds an item to the inventory. If a stack of that item is already in the
         /// inventory, the stack is incremented. Otherwise, if an open space is available,
         /// that space will be turned into the new item stack. If no spaces are open,
@@ -247,11 +299,12 @@ namespace Permafrost.Player
             // try add item to existing stack
             for (int i = 0; i < inventorySize; i++)
             {
+                if (inventory[i] == null) continue;
                 if (!inventory[i].SameStackAs(item)) continue;
                 if (inventory[i].GetCount() >= inventory[i].Stats.MaxStackSize) continue;
 
                 inventory[i].IncrementCount();
-                Debug.LogWarning("todo: item pickup stuff?");
+                if (uiController != null) uiController.UpdateInventoryUI(this, SelectedItemIndex);
                 return true;
             }
 
@@ -262,8 +315,8 @@ namespace Permafrost.Player
                 if (inventory[i] != null) continue;
 
                 inventory[i] = new Item(item);
-                Debug.LogWarning("todo: item pickup stuff?");
                 AvailableInventorySlots--;
+                if (uiController != null) uiController.UpdateInventoryUI(this, SelectedItemIndex);
                 return true;
             }
 
@@ -292,6 +345,7 @@ namespace Permafrost.Player
             inventory[index] = null;
             Debug.LogWarning("todo: item removal stuff?");
             AvailableInventorySlots++;
+            if (uiController != null) uiController.UpdateInventoryUI(this, SelectedItemIndex);
             return true;
         }
 

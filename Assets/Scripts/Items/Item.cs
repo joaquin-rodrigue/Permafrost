@@ -101,7 +101,7 @@ namespace Permafrost.Items
             ammoCount = attributest.GunMagazineSize;
 
             // try to find the behavior class
-            behavior = ItemLibrary.Instance.GetItemBehaviors(attributes.Name);
+            behavior = ItemLibrary.Instance.GetItemBehaviors(attributes.BehaviorName);
             if (behavior == null)
             {
                 Debug.LogWarning($"Item '{attributes.Name}' made but no behavior class could be found!");

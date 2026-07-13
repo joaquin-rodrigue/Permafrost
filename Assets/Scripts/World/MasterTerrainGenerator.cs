@@ -168,6 +168,12 @@ namespace Permafrost.World
         #endregion
 
         #region Making Some Terra Ain
+        public void QueueTerrain(Vector3 position)
+        {
+            generationQueue.Add(position);
+            generationQueue.Sort((vec1, vec2) => (int)((Mathf.Abs(vec1.x) + Mathf.Abs(vec1.y) + Mathf.Abs(vec1.z)) - (Mathf.Abs(vec2.x) + Mathf.Abs(vec2.y) + Mathf.Abs(vec2.z))));
+        }
+
         private void LoadBlockFromFile(Vector3 position)
         {
 
@@ -190,9 +196,10 @@ namespace Permafrost.World
         /// <param name="position">The grid position to spawn the object at.</param>
         public void GenerateNewBlock(Vector3 position)
         {
+            // checks
             if (generating)
             {
-                generationQueue.Add(position);
+                QueueTerrain(position);
                 return;
             }
             generating = true;
@@ -297,6 +304,7 @@ namespace Permafrost.World
                 totalTime = System.DateTime.Now.Ticks - time;
                 PrintPhaseTiming(totalTime, "Paths completed");
             }
+            yield return new WaitForFixedUpdate();
 
             // foliage features
             time = System.DateTime.Now.Ticks;
@@ -306,6 +314,7 @@ namespace Permafrost.World
                 totalTime = System.DateTime.Now.Ticks - time;
                 PrintPhaseTiming(totalTime, "Foliage features completed");
             }
+            yield return new WaitForFixedUpdate();
 
             // path cleanup
             time = System.DateTime.Now.Ticks;
@@ -315,6 +324,7 @@ namespace Permafrost.World
                 totalTime = System.DateTime.Now.Ticks - time;
                 PrintPhaseTiming(totalTime, "Paths cleaned up");
             }
+            yield return new WaitForFixedUpdate();
 
             generating = false;
         }

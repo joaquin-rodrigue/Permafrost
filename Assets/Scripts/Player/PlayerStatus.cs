@@ -1,4 +1,5 @@
 using Permafrost.World;
+using Permafrost.UI;
 
 using System.Collections;
 using UnityEngine;
@@ -20,6 +21,7 @@ namespace Permafrost.Player
         [Tooltip("When the player is at full hunger, this much health will be healed per frame, decreasing based on the hunger regen threshold.")]
         [SerializeField] private float fullHungerRegen = 0.1f;
 
+        private float baseMaxHealth;
         public float MaxHealth { get => maxHealth; }
         public float CurrentHealth { get; private set; }
         public bool InvulnerabilityActive { get; private set; }
@@ -36,6 +38,7 @@ namespace Permafrost.Player
         [SerializeField] private float passiveHungerLoss = 0.003f;
         [SerializeField] private float sprintHungerLoss = 0.009f;
 
+        private float baseMaxHunger;
         public float MaxHunger { get => maxHunger; }
         public float CurrentHunger { get; private set; }
         private float maxToRegenThresholdDiff;
@@ -56,7 +59,7 @@ namespace Permafrost.Player
         [Header("Component References")]
         [SerializeField] private DayNightCycle dayNightCycle;
         [SerializeField] private GameMaster gameMaster;
-        [SerializeField] private UIController uiController;
+        [SerializeField] private PlayerUI uiController;
 
         private PlayerController playerController;
 
@@ -71,7 +74,9 @@ namespace Permafrost.Player
             playerController = GetComponent<PlayerController>();
 
             CurrentHealth = maxHealth;
+            baseMaxHealth = maxHealth;
             CurrentHunger = maxHunger;
+            baseMaxHunger = maxHunger;
             maxToRegenThresholdDiff = maxHunger - hungerRegenThreshold;
         }
 
@@ -140,6 +145,13 @@ namespace Permafrost.Player
                 CurrentHunger = 0;
                 CurrentHealth -= starveDamage;
             }
+
+            if (debugEnabled)
+            {
+                Debug.Log($"[PlayerStatus] Current hunger: {CurrentHunger}, max: {maxHunger}");
+            }
+
+            if (uiController != null) uiController.UpdateHungerUI(CurrentHunger, maxHunger, baseMaxHunger);
         }
 
         /// <summary>
@@ -151,8 +163,14 @@ namespace Permafrost.Player
             if (dayNightCycle.LightValue > darknessDamageThreshold || IsInLight) return;
 
             DarknessTimer += Time.fixedDeltaTime;
-            float damage = darknessDamageThreshold - dayNightCycle.LightValue + DarknessTimer * darknessTimeMultiplier;
+            float damage = (darknessDamageThreshold - dayNightCycle.LightValue) + (DarknessTimer * darknessTimeMultiplier);
             CurrentHealth -= damage;
+
+            if (debugEnabled)
+            {
+                Debug.Log($"[PlayerStatus] In darkness for: {DarknessTimer}, damage: {damage}, current health: {CurrentHealth}");
+            }
+            if (uiController != null) uiController.UpdateHealthUI(CurrentHealth, maxHealth, baseMaxHealth);
         }
         #endregion
 
@@ -175,6 +193,7 @@ namespace Permafrost.Player
                 CurrentHealth = 0;
                 Dead = true;
             }
+            if (uiController != null) uiController.UpdateHealthUI(CurrentHealth, maxHealth, baseMaxHealth);
             return CurrentHealth == 0;
         }
 
@@ -193,6 +212,7 @@ namespace Permafrost.Player
                 CurrentHealth = 0;
                 Dead = true;
             }
+            if (uiController != null) uiController.UpdateHealthUI(CurrentHealth, maxHealth, baseMaxHealth);
             return CurrentHealth == 0;
         }
 
@@ -204,6 +224,7 @@ namespace Permafrost.Player
         {
             CurrentHealth += health;
             if (CurrentHealth > maxHealth) CurrentHealth = maxHealth;
+            if (uiController != null) uiController.UpdateHealthUI(CurrentHealth, maxHealth, baseMaxHealth);
         }
 
         /// <summary>
@@ -214,6 +235,7 @@ namespace Permafrost.Player
         {
             CurrentHunger += hunger;
             if (CurrentHunger > maxHunger) CurrentHunger = maxHunger;
+            if (uiController != null) uiController.UpdateHungerUI(CurrentHunger, maxHunger, baseMaxHunger);
         }
 
         /// <summary>
@@ -224,6 +246,7 @@ namespace Permafrost.Player
         {
             CurrentHunger -= hunger;
             if (CurrentHunger < maxHunger) CurrentHunger = 0;
+            if (uiController != null) uiController.UpdateHungerUI(CurrentHunger, maxHunger, baseMaxHunger);
         }
 
         /// <summary>

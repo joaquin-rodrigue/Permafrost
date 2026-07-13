@@ -46,7 +46,7 @@ namespace Permafrost.World
             {
                 for (int j = -1; j < 2; j++)
                 {
-                    gen.GenerateNewBlock(new Vector3(i * gen.TerrainCellSize, 0, j * gen.TerrainCellSize));
+                    gen.QueueTerrain(new Vector3(i * gen.TerrainCellSize, 0, j * gen.TerrainCellSize));
                 }
             }
         }
@@ -70,7 +70,7 @@ namespace Permafrost.World
             {
                 for (int j = -5; j < 6; j++)
                 {
-                    gen.GenerateNewBlock(new Vector3(i * gen.TerrainCellSize, 0, j * gen.TerrainCellSize));
+                    gen.QueueTerrain(new Vector3(i * gen.TerrainCellSize, 0, j * gen.TerrainCellSize));
                 }
             }
         }
@@ -96,7 +96,7 @@ namespace Permafrost.World
             {
                 for (int j = -20; j < 21; j++)
                 {
-                    gen.GenerateNewBlock(new Vector3(i * gen.TerrainCellSize, 0, j * gen.TerrainCellSize));
+                    gen.QueueTerrain(new Vector3(i * gen.TerrainCellSize, 0, j * gen.TerrainCellSize));
                 }
             }
         }
