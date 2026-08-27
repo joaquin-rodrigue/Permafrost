@@ -204,7 +204,8 @@ MonoBehaviour:
   - {fileID: 21300000, guid: 3b2554b5a698d07499529c0e1bc49b4a, type: 3}
   - {fileID: 21300000, guid: 0beec7605c7a42a4e9bc9f75dacc88cc, type: 3}
   - {fileID: 21300000, guid: 12ccd4fef711cdc4f97ba1b073a2c9a3, type: 3}
-  itemBehaviorNames: []
+  itemBehaviorNames:
+  - Permafrost.Items.BasicMeleeWeaponBehavior
   debugEnabled: 0
 --- !u!4 &36073837
 Transform:
@@ -971,6 +972,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: Player
       objectReference: {fileID: 0}
+    - target: {fileID: 7284322250079906714, guid: 0061937795115a74c905674e4c1b53e5, type: 3}
+      propertyPath: gameMaster
+      value: 
+      objectReference: {fileID: 1158871496}
     - target: {fileID: 7284322250079906714, guid: 0061937795115a74c905674e4c1b53e5, type: 3}
       propertyPath: debugEnabled
       value: 0

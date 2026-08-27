@@ -18,6 +18,8 @@ namespace Permafrost.Player
 
         [Header("Component References")]
         [SerializeField] private Animator viewModelAnimator;
+        [SerializeField] private PlayerInventory playerInventory;
+        [SerializeField] private GameMaster gameMaster;
 
         private PlayerController playerController;
         private Rigidbody rb;
@@ -36,6 +38,13 @@ namespace Permafrost.Player
         void FixedUpdate()
         {
             // neck rotation
+            if (gameMaster.GamePaused) return;
+            LookAndSpeed();
+            ViewModelUpdate();
+        }
+
+        private void LookAndSpeed()
+        {
             neckJoint.localRotation = Quaternion.Euler(-playerController.YLookAngle, -90, 0);
             //neckJoint.localRotation = Quaternion.AngleAxis(-playerController.YLookAngle /*+ baseNeckRotation*/, Vector3.right);
 
@@ -44,6 +53,14 @@ namespace Permafrost.Player
                 Debug.Log($"[PlayerAnimator] Velocity: {rb.linearVelocity}, magnitude: {rb.linearVelocity.magnitude}");
             }
             viewModelAnimator.SetFloat("speed", rb.linearVelocity.magnitude);
+        }
+
+        private void ViewModelUpdate()
+        {
+            if (playerInventory == null)
+            {
+                viewModelAnimator.SetBool("holdingWeapon", false);
+            }
         }
     }
 }

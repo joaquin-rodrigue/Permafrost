@@ -1,4 +1,5 @@
 using System;
+using System.Reflection;
 using UnityEngine;
 
 namespace Permafrost.Items
@@ -59,13 +60,19 @@ namespace Permafrost.Items
                 Debug.Log("[ItemLibrary] Initializing item classes...");
             }
 
+            itemBehaviors = new IItemBehavior[itemBehaviorNames.Length];
             for (int i = 0; i < itemBehaviorNames.Length; i++)
             {
+                // these are used for all constructor calls ahead
+                Type[] param = new Type[0];
+                object[] vals = new object[0];
+
                 try
                 {
                     string item = itemBehaviorNames[i];
                     Type t = Type.GetType(item);
-                    itemBehaviors[i] = t.GetConstructor(null).Invoke(null) as IItemBehavior;
+                    ConstructorInfo ctor = t.GetConstructor(param);
+                    itemBehaviors[i] = ctor.Invoke(vals) as IItemBehavior;
                 }
                 catch (Exception e)
                 {

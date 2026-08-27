@@ -586,6 +586,7 @@ MonoBehaviour:
   dropItemCooldownModifier: 0.95
   gameMaster: {fileID: 0}
   playerController: {fileID: 3680688814628995371}
+  uiController: {fileID: 0}
   debugEnabled: 0
 --- !u!114 &7311118654123058290
 MonoBehaviour:
@@ -675,6 +676,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   neckJoint: {fileID: 2036656760247036439}
   viewModelAnimator: {fileID: 7722567919916369183}
+  playerInventory: {fileID: 2728043403089904721}
+  gameMaster: {fileID: 0}
   debugEnabled: 0
 --- !u!1 &6324257558969441730
 GameObject:

@@ -5,6 +5,8 @@ namespace Permafrost.Items
 {
     public class BasicMeleeWeaponBehavior : IItemBehavior
     {
+        public BasicMeleeWeaponBehavior() { }
+
         public void Update(PlayerInventory inventory, Item self)
         {
             

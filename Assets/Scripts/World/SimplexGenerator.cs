@@ -18,6 +18,7 @@ namespace Permafrost.World
     {
         public float weight;
         public float scaleModifier;
+        public FadeFunctionType fadeFunction;
     }
 
     /// <summary>
@@ -28,6 +29,14 @@ namespace Permafrost.World
         public float[,] heights;
         public float forestationFactor;
         public float dryFactor;
+    }
+
+    /// <summary>
+    /// Simple enum to determine what fade function this layer should use.
+    /// </summary>
+    public enum FadeFunctionType
+    {
+        Default, Peaks
     }
     #endregion
 
@@ -154,12 +163,13 @@ namespace Permafrost.World
                         {
                             heights[i, j] += noiseLayers[n].weight * Perlin(
                                 cellX * noiseLayers[n].scaleModifier + (j / (float) cellSize * noiseLayers[n].scaleModifier),
-                                cellY * noiseLayers[n].scaleModifier + (i / (float) cellSize * noiseLayers[n].scaleModifier));
+                                cellY * noiseLayers[n].scaleModifier + (i / (float) cellSize * noiseLayers[n].scaleModifier),
+                                noiseLayers[n].fadeFunction);
                         }
                         heights[i, j] += biomeNoiseLayer.weight * BiomePerlin(
                             cellX * biomeNoiseLayer.scaleModifier + (j / (float)cellSize * biomeNoiseLayer.scaleModifier),
                             cellY * biomeNoiseLayer.scaleModifier + (i / (float)cellSize * biomeNoiseLayer.scaleModifier),
-                            ref forestation, ref dry);
+                            ref forestation, ref dry, biomeNoiseLayer.fadeFunction);
                         l++;
                     }
                 }
@@ -190,14 +200,25 @@ namespace Permafrost.World
         /// <param name="x">The x position.</param>
         /// <param name="y">The y position.</param>
         /// <returns>The height of the specified point.</returns>
-        private float Perlin(float x, float y)
+        private float Perlin(float x, float y, FadeFunctionType t)
         {
             // Separate int and float portions of the coords
             int xi = (int) x, yi = (int) y;
             float xf = x - xi, yf = y - yi;
 
             // Fade function coefficients?
-            float u = PerlinFade(xf), v = PerlinFade(yf);
+            float u = 0, v = 0;
+            switch (t)
+            {
+                case FadeFunctionType.Default:
+                    u = PerlinFade(xf);
+                    v = PerlinFade(yf);
+                    break;
+                case FadeFunctionType.Peaks:
+                    u = PerlinFadePeaks(xf);
+                    v = PerlinFadePeaks(yf);
+                    break;
+            }
 
             // Get the gradient vector offsets via this silly hash function magic
             byte aa, ab, ba, bb;
@@ -251,11 +272,21 @@ namespace Permafrost.World
         /// <summary>
         /// The fade function that smooths out the noise.
         /// </summary>
-        /// <param name="val">The raw height value of the point.</param>
-        /// <returns>A new height value which is smoothed out.</returns>
+        /// <param name="val">An x or y float position.</param>
+        /// <returns></returns>
         private float PerlinFade(float val)
         {
             return val * val * val * (val * (val * 6 - 15) + 10);
+        }
+
+        /// <summary>
+        /// A second fade function that creates tall peaks at its highest.
+        /// </summary>
+        /// <param name="val">An x or y float position.</param>
+        /// <returns></returns>
+        private float PerlinFadePeaks(float val)
+        {
+            return val * val * val * (val * (val * val * 6 - 15) + 10);
         }
 
         /// <summary>
@@ -266,14 +297,25 @@ namespace Permafrost.World
         /// <param name="d">The dry factor of the chunk's biome.</param>
         /// <param name="f">The forestation factor of the chunk's biome.</param>
         /// <returns></returns>
-        private float BiomePerlin(float x, float y, ref float f, ref float d)
+        private float BiomePerlin(float x, float y, ref float f, ref float d, FadeFunctionType t)
         {
             // Separate int and float portions of the coords
             int xi = (int) x, yi = (int) y;
             float xf = x - xi, yf = y - yi;
 
             // Fade function coefficients?
-            float u = PerlinFade(xf), v = PerlinFade(yf);
+            float u = 0, v = 0;
+            switch (t)
+            {
+                case FadeFunctionType.Default:
+                    u = PerlinFade(xf);
+                    v = PerlinFade(yf);
+                    break;
+                case FadeFunctionType.Peaks:
+                    u = PerlinFadePeaks(xf);
+                    v = PerlinFadePeaks(yf);
+                    break;
+            }
 
             // Get the gradient vector offsets via this silly hash function magic
             // This is where things are gonna start changing here

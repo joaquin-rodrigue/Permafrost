@@ -7,6 +7,9 @@ namespace Permafrost.Items
     /// The interface for all item behaviors.
     /// Ideally, classes implementing this interface should also
     /// implement a singleton structure.
+    /// 
+    /// !!IMPORTANT!! Include some kind of constructor on any instance of this interface!
+    /// The constructor can be empty, but will never be given any parameters.
     /// </summary>
     public interface IItemBehavior
     {

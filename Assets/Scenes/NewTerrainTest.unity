@@ -318,15 +318,20 @@ MonoBehaviour:
   noiseLayers:
   - weight: 0.08
     scaleModifier: 0.33
+    fadeFunction: 0
   - weight: 0.05
     scaleModifier: 0.6
+    fadeFunction: 0
   - weight: 0.03
     scaleModifier: 1
+    fadeFunction: 0
   - weight: 0.015
     scaleModifier: 1.8
+    fadeFunction: 0
   biomeNoiseLayer:
     weight: 0.5
     scaleModifier: 0.1
+    fadeFunction: 1
   masterGenerator: {fileID: 1551831098}
   debugEnabled: 0
 --- !u!114 &1551831100
