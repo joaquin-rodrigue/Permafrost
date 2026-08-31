@@ -83,8 +83,9 @@ namespace Permafrost.Player
 
                 ItemAttributes stats = inventory[i].Stats;
 
-                Debug.LogWarning("todo: item update function in item class");
-                SelectedItem.Update(this);
+                //Debug.LogWarning("todo: item update function in item class");
+                //Debug.Log($"updating item {i}");
+                inventory[i].Update(this);
             }
         }
         

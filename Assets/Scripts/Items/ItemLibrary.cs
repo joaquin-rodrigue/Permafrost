@@ -109,6 +109,25 @@ namespace Permafrost.Items
             return -1;
         }
 
+        /// <summary>
+        /// Searches the item behavior list and returns the index of the associated item.
+        /// This uses the name of the item's behavior, including namespaces.
+        /// </summary>
+        /// <param name="itemName">The name of the item's behavior class.</param>
+        /// <returns>The index in the item behavior list that the item's behavior is at, or -1 if not found.</returns>
+        private int SearchItemBehaviorList(string itemName)
+        {
+            if (itemName == null) return -1;
+            for (int i = 0; i < itemBehaviorNames.Length; i++)
+            {
+                if (itemName == itemBehaviorNames[i])
+                {
+                    return i;
+                }
+            }
+            return -1;
+        }
+
         #endregion
 
         #region Getters
@@ -227,7 +246,7 @@ namespace Permafrost.Items
         /// <returns>An IItemBehavior-implementing object, or null if none oculd be found.</returns>
         public IItemBehavior GetItemBehaviors(string itemName)
         {
-            int index = SearchItemList(itemName);
+            int index = SearchItemBehaviorList(itemName);
             if (index == -1)
             {
                 Debug.LogWarning($"Tried getting item behavior class for item '{itemName}' that doesn't exist!");

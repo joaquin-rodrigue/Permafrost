@@ -14,6 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   Type: 6
   Name: Axe
+  BehaviorName: Permafrost.Items.BasicMeleeWeaponBehavior
   MaxStackSize: 1
   Prefab: {fileID: 7645287937839605031, guid: e1bcef9a468bda34b9675be50004ad7b, type: 3}
   ViewModel: {fileID: -3218693266254596592, guid: b15878c9283b164468aa47bebaff9cc5, type: 3}
@@ -34,6 +35,10 @@ MonoBehaviour:
   BurnableFuelValue: 0
   BurnableFuelStrength: 0
   BreakingStrength: 10
+  WearableItemType: 0
+  WearableDamageModifier: 0
+  WearableTemperatureLossModifier: 0
+  WearableSpeedModifier: 0
   LightDurability: 0
   LightIntensity: 0
   LightRange: 0

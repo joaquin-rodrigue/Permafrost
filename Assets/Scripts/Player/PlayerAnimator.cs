@@ -1,5 +1,7 @@
 using UnityEngine;
 
+using Permafrost.Items;
+
 namespace Permafrost.Player
 {
     /// <summary>
@@ -60,7 +62,15 @@ namespace Permafrost.Player
             if (playerInventory == null)
             {
                 viewModelAnimator.SetBool("holdingWeapon", false);
+                return;
             }
+            Item current = playerInventory.SelectedItem;
+            if (current == null)
+            {
+                viewModelAnimator.SetBool("holdingWeapon", false);
+                return;
+            }
+            viewModelAnimator.SetBool("holdingWeapon", current.IsType(ItemType.Weapon));
         }
     }
 }
